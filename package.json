@@ -7,7 +7,7 @@
   "dependencies": {
     "@vitejs/plugin-react": "latest",
     "vite": "latest",
-    "typescript": "latest",
+    "typescript": "^5.6.3",
     "react": "latest",
     "react-dom": "latest",
     "lucide-react": "latest",
