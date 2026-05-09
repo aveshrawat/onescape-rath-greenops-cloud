@@ -8,7 +8,7 @@ import {
   Building2,
   CheckCircle2,
   ChevronRight,
-  CircleDollarSign,
+  DollarSign,
   Cloud,
   Database,
   Download,
@@ -28,7 +28,7 @@ import {
   Target,
   Trees,
   TrendingUp,
-  TriangleAlert,
+  AlertTriangle,
   Users,
   WalletCards,
   Waves,
@@ -638,7 +638,7 @@ export default function RathGreenOpsCloud() {
                 <Metric label="Green Asset Maturity" value={`Level ${dashboard.greenAssetMaturityLevel}/6`} sub={demoSnapshot.details.maturityPathway.currentLabel} icon={Target} tone="green" badge="Pathway" />
                 <Metric label="Nature-Readiness" value={`${formatNumber(dashboard.natureReadinessScore10, 1)}/10`} sub="Pilot-level nature score" icon={Leaf} tone="green" badge="E0 model" />
                 <Metric label="Water-to-Health" value={`${formatNumber(dashboard.waterToHealthIndex100, 0)}/100`} sub="Water linked to landscape outcome" icon={Droplets} tone="blue" badge="Measured" />
-                <Metric label="High-Risk Zones" value={`${dashboard.highRiskZoneCount}`} sub="Intervention zones" icon={TriangleAlert} tone="amber" badge="Risk map" />
+                <Metric label="High-Risk Zones" value={`${dashboard.highRiskZoneCount}`} sub="Intervention zones" icon={AlertTriangle} tone="amber" badge="Risk map" />
                 <Metric label="Data Quality" value={`${formatNumber(dashboard.dataQualityScore100, 0)}/100`} sub="Evidence quality score" icon={Database} tone="purple" badge="Evidence" />
                 <Metric label="P1 Investments" value={`${dashboard.p1InvestmentActionCount}`} sub="Recommended action priorities" icon={WalletCards} tone="amber" badge="Planner" />
               </div>
@@ -800,7 +800,7 @@ export default function RathGreenOpsCloud() {
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
                   <Metric label="Reused water" value={`${formatInt(dashboard.waterReusedLitres)} L`} sub="STP / HVAC / recycled source tracking" icon={Recycle} tone="blue" badge="Ledger" />
                   <Metric label="Freshwater avoided" value={`${formatInt(dashboard.freshwaterAvoidedLitres)} L`} sub="Baseline vs actual estimate" icon={Waves} tone="green" badge="Internal" />
-                  <Metric label="Water leakage watch" value={formatCurrency(demoSnapshot.details.costLeakage.waterInefficiencyLeakageInr)} sub="Inefficiency linked to zone health" icon={TriangleAlert} tone="amber" badge="P&L" />
+                  <Metric label="Water leakage watch" value={formatCurrency(demoSnapshot.details.costLeakage.waterInefficiencyLeakageInr)} sub="Inefficiency linked to zone health" icon={AlertTriangle} tone="amber" badge="P&L" />
                 </div>
               </div>
             </div>
