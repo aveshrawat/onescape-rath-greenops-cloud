@@ -3,8 +3,7 @@ export const METHOD_VERSION = "RATH-GII-v0.6";
 export const ROLES = {
   CEO: "CEO",
   ESG: "ESG Team",
-  IFM: "IFM Partner",
-  PM: "Property Manager"
+  OPERATIONS: "Property Operations"
 };
 
 export const demoCredentials = [
@@ -15,6 +14,7 @@ export const demoCredentials = [
     displayName: "CEO / Board",
     workspace: "Client Campus Pilot",
     defaultView: "value",
+    summary: "Asset value, tenant impact, risk, carbon, water, and capital decisions."
   },
   {
     email: "esg@client.com",
@@ -23,22 +23,16 @@ export const demoCredentials = [
     displayName: "ESG Team",
     workspace: "Client Campus Pilot",
     defaultView: "evidence",
+    summary: "Evidence, nature-readiness, water, carbon, and claim-safe reporting support."
   },
   {
-    email: "ifm@partner.com",
+    email: "ops@client.com",
     pin: "333333",
-    role: ROLES.IFM,
-    displayName: "IFM Partner",
+    role: ROLES.OPERATIONS,
+    displayName: "Property Operations",
     workspace: "Client Campus Pilot",
     defaultView: "control",
-  },
-  {
-    email: "pm@client.com",
-    pin: "444444",
-    role: ROLES.PM,
-    displayName: "Property Manager",
-    workspace: "Client Campus Pilot",
-    defaultView: "control",
+    summary: "Risk zones, maintenance actions, SLA proof, and intervention tracking."
   },
 ];
 
@@ -51,52 +45,41 @@ export const dashboardCopy = {
   [ROLES.CEO]: {
     productName: "Green Infrastructure Value Dashboard",
     purpose: "Sell the vision.",
-    hero: "Asset value, tenant impact, risk, and capital decisions from already-owned green infrastructure.",
+    hero: "Asset value, tenant impact, risk, carbon, water, and capital decisions from already-owned green infrastructure.",
   },
   [ROLES.ESG]: {
-    productName: "Evidence & Nature-Readiness Studio",
+    productName: "Evidence & Resource Impact Studio",
     purpose: "Prove defensibility.",
-    hero: "Evidence maturity, claim safety, LEAP alignment, data quality, and export-ready ESG support.",
+    hero: "Evidence maturity, nature-readiness, water, carbon, data quality, and claim-safe ESG support.",
   },
-  [ROLES.IFM]: {
+  [ROLES.OPERATIONS]: {
     productName: "GreenOps Control Center",
     purpose: "Prove execution.",
-    hero: "SLA proof, vendor accountability, recurring issues, water stress, and service report intelligence.",
-  },
-  [ROLES.PM]: {
-    productName: "GreenOps Control Center",
-    purpose: "Make site control easier.",
-    hero: "Zone health, action queues, water stress, closure proof, and replacement-risk control.",
+    hero: "Risk zones, action queues, water stress, SLA proof, closure evidence, and replacement-risk control.",
   },
 };
 
 export const roleViews = {
   [ROLES.CEO]: [
-    { key: "value", label: "Value Overview", description: "Six-card board summary" },
+    { key: "value", label: "Value Overview", description: "Board summary" },
     { key: "risk", label: "Risk Map", description: "High-risk green zones" },
     { key: "natureWater", label: "Nature + Water", description: "Nature radar and water-health" },
+    { key: "carbonResource", label: "Carbon + Resource", description: "Carbon, water and leakage" },
     { key: "investment", label: "Investment Planner", description: "Cost vs impact prioritization" },
     { key: "boardPack", label: "Board Pack", description: "Forwardable executive evidence" },
   ],
   [ROLES.ESG]: [
     { key: "evidence", label: "Evidence Overview", description: "Evidence maturity and gaps" },
-    { key: "leap", label: "LEAP Mapping", description: "Locate, Evaluate, Assess, Prepare" },
+    { key: "carbonResource", label: "Carbon + Resource", description: "Contribution and claim boundary" },
+    { key: "natureWater", label: "Nature + Water", description: "Nature and water evidence" },
     { key: "dataQuality", label: "Data Quality", description: "Completeness and gaps" },
     { key: "claimSafety", label: "Claim Safety", description: "Allowed vs blocked language" },
     { key: "methodology", label: "Methodology", description: "Assumptions and boundaries" },
     { key: "exports", label: "Exports", description: "PDF / CSV / Excel studio" },
   ],
-  [ROLES.IFM]: [
+  [ROLES.OPERATIONS]: [
     { key: "control", label: "Control Center", description: "Operating command view" },
-    { key: "zoneHealth", label: "Zone Health", description: "Where attention is needed" },
-    { key: "tickets", label: "Tickets + SLA", description: "Service proof" },
-    { key: "waterStress", label: "Water Stress", description: "Water-health exceptions" },
-    { key: "recurring", label: "Recurring Issues", description: "Root-cause leakage" },
-    { key: "serviceReport", label: "Service Report", description: "Weekly FM-ready report" },
-  ],
-  [ROLES.PM]: [
-    { key: "control", label: "Control Center", description: "Operating command view" },
-    { key: "zoneHealth", label: "Zone Health", description: "Where attention is needed" },
+    { key: "zoneHealth", label: "Risk Zones", description: "Where attention is needed" },
     { key: "tickets", label: "Tickets + SLA", description: "Open work and closure proof" },
     { key: "waterStress", label: "Water Stress", description: "Irrigation exceptions" },
     { key: "recurring", label: "Recurring Issues", description: "Repeat failures" },
@@ -118,11 +101,14 @@ export const snapshot = {
     highRiskGreenZones: 1,
     tenantGreenEngagementReadiness: 62,
     recommendedInvestmentActions: 3,
-    greenAssetMaturityLevel: 4,
+    greenAssetMaturityLevel: 5,
     dataQualityScore: 82,
     costLeakageEstimateInr: 8800,
     carbonStockProxyTco2e: 50.14,
     annualSequestrationProxyTco2e: 0.732,
+    registeredGreenAssets: 127,
+    mappedTrees: 46,
+    mappedShrubsAndPalms: 81,
     eligibleInternalContributionTco2e: 0.183,
     waterReusedLitres: 37700,
     freshwaterAvoidedLitres: 37700,
@@ -151,10 +137,10 @@ export const snapshot = {
     { month: "May", value: 74, nature: 67, water: 81, risk: 43, quality: 82, tenant: 62 },
   ],
   zones: [
-    { id: "zone_podium", name: "Podium Lawn", healthRisk: 35, waterStressRisk: 62, heatExposureRisk: 55, natureWeaknessRisk: 42, dataGapRisk: 28, riskScore: 79, status: "Intervention", tenantVisibility: "High", recommendedAction: "Replace high-water lawn pockets with adaptive planting and irrigation zoning." },
-    { id: "zone_arrival", name: "Main Arrival Court", healthRisk: 24, waterStressRisk: 32, heatExposureRisk: 85, natureWeaknessRisk: 36, dataGapRisk: 18, riskScore: 58, status: "Watch", tenantVisibility: "High", recommendedAction: "Add shade and soil-moisture governance at arrival corridor." },
-    { id: "zone_spine", name: "Pedestrian Spine", healthRisk: 12, waterStressRisk: 24, heatExposureRisk: 85, natureWeaknessRisk: 28, dataGapRisk: 12, riskScore: 42, status: "Stable", tenantVisibility: "High", recommendedAction: "Maintain current governance cadence and upgrade tenant-facing story cards." },
-    { id: "zone_bio", name: "Biodiversity Pocket", healthRisk: 10, waterStressRisk: 38, heatExposureRisk: 25, natureWeaknessRisk: 18, dataGapRisk: 34, riskScore: 32, status: "Stable", tenantVisibility: "Medium", recommendedAction: "Add water linkage evidence and convert into green trail point." },
+    { id: "zone_podium", name: "Podium Lawn", healthRisk: 35, waterStressRisk: 62, heatExposureRisk: 55, natureWeaknessRisk: 42, dataGapRisk: 28, riskScore: 79, status: "Intervention", tenantVisibility: "High", recommendedAction: "Replace high-water lawn pockets with adaptive planting and irrigation zoning.", reason: "High water stress combined with tenant visibility and weaker nature score.", evidence: "Site photos, STP-water ledger, maintenance observations", costRange: "₹1.8L–₹3.2L", priority: "P1" },
+    { id: "zone_arrival", name: "Main Arrival Court", healthRisk: 24, waterStressRisk: 32, heatExposureRisk: 85, natureWeaknessRisk: 36, dataGapRisk: 18, riskScore: 58, status: "Watch", tenantVisibility: "High", recommendedAction: "Add shade and soil-moisture governance at arrival corridor.", reason: "Heat exposure is high; current health and water indicators remain manageable.", evidence: "Heat exposure score, field walk-through, zone health scan", costRange: "₹3.5L–₹5.2L", priority: "P2" },
+    { id: "zone_spine", name: "Pedestrian Spine", healthRisk: 12, waterStressRisk: 24, heatExposureRisk: 85, natureWeaknessRisk: 28, dataGapRisk: 12, riskScore: 42, status: "Stable", tenantVisibility: "High", recommendedAction: "Maintain current governance cadence and upgrade tenant-facing story cards.", reason: "Strong health and water position; heat remains a monitoring item.", evidence: "Health scan, maintenance log, visibility mapping", costRange: "₹0.8L–₹1.5L", priority: "P3" },
+    { id: "zone_bio", name: "Biodiversity Pocket", healthRisk: 10, waterStressRisk: 38, heatExposureRisk: 25, natureWeaknessRisk: 18, dataGapRisk: 34, riskScore: 32, status: "Stable", tenantVisibility: "Medium", recommendedAction: "Add water linkage evidence and convert into green trail point.", reason: "Good nature baseline; data linkage should be improved before external storytelling.", evidence: "Species record, photo evidence, partial water linkage", costRange: "₹1.2L–₹2.2L", priority: "P3" },
   ],
   water: [
     { zone: "Spine", index: 88, health: 89, waterIntensity: 29, source: "STP", status: "Efficient" },
@@ -257,7 +243,7 @@ export function getBoardNarrative() {
     `The pilot asset has reached Level ${s.greenAssetMaturityLevel}/6: nature-readiness indicators are now visible, but third-party evidence maturity is not yet reached.`,
     `Green infrastructure value is ${s.greenInfrastructureValueScore}/100 with ${s.highRiskGreenZones} intervention zone and ${s.recommendedInvestmentActions} recommended investment actions.`,
     `Water-to-health is ${s.waterToHealthScore}/100, but water resilience inside nature-readiness remains weak; this is the highest-quality improvement opportunity.`,
-    `Carbon remains supporting evidence only: ${s.carbonStockProxyTco2e} tCO₂e stock proxy and ${s.annualSequestrationProxyTco2e} tCO₂e/year sequestration proxy at E0 evidence level.`,
+    `Carbon remains supporting evidence only: ${s.carbonStockProxyTco2e} tCO₂e stock proxy and ${s.eligibleInternalContributionTco2e} tCO₂e/year eligible internal contribution estimate at E0 evidence level.`,
   ];
 }
 
