@@ -8,6 +8,7 @@ import {
   ChevronRight,
   ClipboardCheck,
   ClipboardList,
+  Cloud,
   Database,
   Download,
   Droplets,
@@ -70,6 +71,7 @@ const iconByView = {
   value: Gauge,
   risk: MapPin,
   natureWater: Leaf,
+  carbonResource: Recycle,
   investment: Wallet,
   boardPack: FileText,
   evidence: FileCheck2,
@@ -86,7 +88,7 @@ const iconByView = {
   serviceReport: FileText,
 };
 
-const periods = ["30D", "QTD", "YTD"];
+const periods = ["Current Snapshot", "30-Day Pilot"];
 
 function cx(...items) {
   return items.filter(Boolean).join(" ");
@@ -151,7 +153,8 @@ function Panel({ children, className = "" }) {
   );
 }
 
-function MetricCard({ label, value, sub, tone = "green", icon: Icon }) {
+function MetricCard({ label, value, sub, tone = "green", icon: Icon, detail }) {
+  const [open, setOpen] = useState(false);
   const toneClasses = {
     green: "bg-emerald-50 text-emerald-700",
     blue: "bg-blue-50 text-blue-700",
@@ -163,19 +166,31 @@ function MetricCard({ label, value, sub, tone = "green", icon: Icon }) {
   };
 
   return (
-    <Panel className="overflow-hidden">
-      <div className="p-4 sm:p-5">
+    <Panel className="relative overflow-visible">
+      <button type="button" onClick={() => setOpen(!open)} className="block w-full p-4 text-left sm:p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <p className="text-xs font-medium text-slate-500 sm:text-sm">{label}</p>
             <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">{value}</p>
             <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">{sub}</p>
+            {detail && <p className="mt-2 text-[11px] font-semibold text-emerald-700">Click for method and action</p>}
           </div>
           <div className={cx("rounded-2xl p-2.5 sm:p-3", toneClasses[tone])}>
             <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
         </div>
-      </div>
+      </button>
+      {open && detail && (
+        <div className="absolute left-4 right-4 top-[calc(100%-8px)] z-30 rounded-2xl border border-slate-200 bg-white p-4 text-xs leading-5 text-slate-600 shadow-2xl">
+          <div className="grid gap-2">
+            <p><span className="font-semibold text-slate-950">Definition:</span> {detail.definition}</p>
+            <p><span className="font-semibold text-slate-950">Formula:</span> {detail.formula}</p>
+            <p><span className="font-semibold text-slate-950">Source:</span> {detail.source}</p>
+            <p><span className="font-semibold text-slate-950">Evidence:</span> {detail.evidence}</p>
+            <p><span className="font-semibold text-slate-950">Action:</span> {detail.action}</p>
+          </div>
+        </div>
+      )}
     </Panel>
   );
 }
@@ -212,15 +227,15 @@ function SectionHeader({ eyebrow, title, description, action }) {
 }
 
 function LoginPortal({ onLogin }) {
-  const [email, setEmail] = useState("ceo@client.com");
-  const [pin, setPin] = useState("111111");
+  const [email, setEmail] = useState("");
+  const [pin, setPin] = useState("");
   const [showPin, setShowPin] = useState(false);
   const [error, setError] = useState("");
 
   function login() {
     const user = authenticateDemoUser(email, pin);
     if (!user) {
-      setError("Invalid demo credentials. Select one of the role cards or enter the matching PIN.");
+      setError("Invalid pilot access. Please check the email and PIN shared for this workspace.");
       return;
     }
     onLogin(user);
@@ -248,26 +263,22 @@ function LoginPortal({ onLogin }) {
               A board-grade system for living infrastructure.
             </h1>
             <p className="mt-5 text-base leading-7 text-emerald-50/70">
-              CEO, ESG, IFM, and property teams get different intelligence from the same governed green asset layer.
+              CEO, ESG, and property operations teams get different intelligence from the same governed green asset layer.
             </p>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
               {demoCredentials.map((item) => (
                 <button
-                  key={item.email}
+                  key={item.displayName}
                   onClick={() => {
-                    setEmail(item.email);
-                    setPin(item.pin);
+                    setEmail("");
+                    setPin("");
                     setError("");
                   }}
-                  className={cx(
-                    "rounded-3xl border p-4 text-left backdrop-blur transition",
-                    email === item.email ? "border-emerald-300/60 bg-emerald-300/10" : "border-white/10 bg-white/[0.07] hover:bg-white/[0.1]"
-                  )}
+                  className="rounded-3xl border border-white/10 bg-white/[0.07] p-4 text-left backdrop-blur transition hover:border-emerald-300/50 hover:bg-white/[0.1]"
                 >
                   <p className="text-sm font-semibold">{item.displayName}</p>
-                  <p className="mt-1 text-xs text-emerald-50/60">{item.email} · PIN {item.pin}</p>
-                  <p className="mt-3 text-xs leading-5 text-emerald-50/55">{dashboardCopy[item.role].productName}</p>
+                  <p className="mt-3 text-xs leading-5 text-emerald-50/55">{item.summary}</p>
                 </button>
               ))}
             </div>
@@ -277,7 +288,7 @@ function LoginPortal({ onLogin }) {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-lg font-semibold">Sign in to workspace</p>
-                <p className="mt-1 text-sm text-emerald-50/60">Role changes screens, KPIs, AI summary, and language</p>
+                <p className="mt-1 text-sm text-emerald-50/60">Role-based green asset intelligence for the approved pilot workspace</p>
               </div>
               <Lock className="h-5 w-5 text-emerald-200" />
             </div>
@@ -301,14 +312,14 @@ function LoginPortal({ onLogin }) {
               {error && <div className="rounded-2xl bg-red-500/10 p-3 text-sm text-red-100 ring-1 ring-red-400/20">{error}</div>}
 
               <Button onClick={login} variant="green" className="w-full">
-                Enter role dashboard <ArrowRight className="h-4 w-4" />
+                Enter Dashboard <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
 
             <div className="mt-5 rounded-3xl bg-black/20 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200">AI-ready</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200">AI-powered executive insights</p>
               <p className="mt-2 text-sm leading-6 text-emerald-50/70">
-                Connect Anthropic/OpenAI on Vercel, or run zero-cost fallback summaries for demo mode.
+                Role-specific summaries generated from governed green asset data for review before external use.
               </p>
             </div>
           </Panel>
@@ -319,10 +330,9 @@ function LoginPortal({ onLogin }) {
 }
 
 function AiPanel({ role, view }) {
-  const [provider, setProvider] = useState("auto");
   const [summary, setSummary] = useState("");
-  const [source, setSource] = useState("fallback");
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
 
   async function generate() {
     setLoading(true);
@@ -330,60 +340,69 @@ function AiPanel({ role, view }) {
       const response = await fetch("/api/ai-summary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role, view, provider, payload: buildAiPayload(role, view) }),
+        body: JSON.stringify({ role, view, provider: "auto", payload: buildAiPayload(role, view) }),
       });
       const data = await response.json();
-      setSummary(data.summary || "No AI summary generated.");
-      setSource(data.provider || "fallback");
+      setSummary(data.summary || "No executive summary generated.");
+      setOpen(true);
     } catch {
-      setSummary("Fallback summary: keep claims restricted, focus on data quality, risk zones, and next investment action.");
-      setSource("fallback");
+      setSummary("Executive summary unavailable. Use the board pack, risk map, carbon/resource impact, and claim boundary sections for manual review.");
+      setOpen(true);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Panel className="overflow-hidden">
-      <div className="border-b border-slate-100 bg-slate-950 p-4 text-white sm:p-5">
-        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+    <>
+      <Panel className="overflow-hidden">
+        <div className="border-b border-slate-100 bg-slate-950 p-4 text-white sm:p-5">
           <div className="flex items-center gap-3">
             <div className="rounded-2xl bg-emerald-300/15 p-2 text-emerald-200">
               <Bot className="h-5 w-5" />
             </div>
             <div>
               <p className="text-sm font-semibold">AI Insight Layer</p>
-              <p className="text-xs text-slate-300">Role-specific summary · claim-safe</p>
+              <p className="text-xs text-slate-300">Role-specific summary · claim-safe · human review required</p>
             </div>
           </div>
-          <Badge tone="white">{source}</Badge>
         </div>
-      </div>
-
-      <div className="p-4 sm:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <select value={provider} onChange={(e) => setProvider(e.target.value)} className="rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none">
-            <option value="auto">Auto provider</option>
-            <option value="anthropic">Claude</option>
-            <option value="openai">OpenAI</option>
-            <option value="fallback">Fallback only</option>
-          </select>
-          <Button onClick={generate} disabled={loading} variant="green">
-            <Sparkles className="h-4 w-4" /> {loading ? "Generating..." : "Generate AI Summary"}
+        <div className="p-4 sm:p-5">
+          <Button onClick={generate} disabled={loading} variant="green" className="w-full">
+            <Sparkles className="h-4 w-4" /> {loading ? "Generating..." : "Generate Executive Summary"}
           </Button>
+          <div className="mt-4 rounded-3xl bg-slate-50 p-4">
+            <p className="text-sm leading-6 text-slate-700">
+              Generate a role-specific summary covering what matters, concern areas, what not to claim, and next action.
+            </p>
+          </div>
+          <div className="mt-4 rounded-2xl bg-amber-50 p-3 text-xs leading-5 text-amber-900 ring-1 ring-amber-100">
+            AI drafts explanations. Final client-facing claims must follow the methodology and claim boundary.
+          </div>
         </div>
+      </Panel>
 
-        <div className="mt-4 rounded-3xl bg-slate-50 p-4">
-          <p className="whitespace-pre-line text-sm leading-6 text-slate-700">
-            {summary || "Generate a role-specific summary that explains what matters, concern areas, what not to claim, and next action."}
-          </p>
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-end justify-end bg-slate-950/30 p-4 backdrop-blur-sm sm:p-6">
+          <Panel className="max-h-[90vh] w-full max-w-2xl overflow-auto p-5 sm:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-lg font-semibold text-slate-950">Executive Summary</p>
+                <p className="mt-1 text-sm text-slate-500">Claim-safe draft for internal review.</p>
+              </div>
+              <button onClick={() => setOpen(false)} className="rounded-2xl bg-slate-100 p-2 text-slate-700">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="mt-5 whitespace-pre-line rounded-3xl bg-slate-50 p-4 text-sm leading-7 text-slate-700">{summary}</div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button variant="light" onClick={() => navigator.clipboard?.writeText(summary)}>Copy summary</Button>
+              <Button variant="dark" onClick={() => window.print()}><Download className="h-4 w-4" /> Add to Board Pack</Button>
+            </div>
+          </Panel>
         </div>
-
-        <div className="mt-4 rounded-2xl bg-amber-50 p-3 text-xs leading-5 text-amber-900 ring-1 ring-amber-100">
-          AI drafts explanations. The deterministic engine and human review control final claims.
-        </div>
-      </div>
-    </Panel>
+      )}
+    </>
   );
 }
 
@@ -409,6 +428,13 @@ function ValueOverview({ role, view, period }) {
             sub={metric.sub}
             tone={metric.tone}
             icon={icons[index] || Gauge}
+            detail={{
+              definition: "Role-level decision signal for the current pilot snapshot.",
+              formula: "Composite score from mapped inventory, zone health, risk, water, data quality, and action priority.",
+              source: "Pilot inventory, zone risk table, water ledger, tickets, and evidence records.",
+              evidence: `${snapshot.evidenceLevel} internal model`,
+              action: "Click into the relevant module to see risk, evidence, and recommended action."
+            }}
           />
         ))}
       </div>
@@ -435,8 +461,8 @@ function ValueOverview({ role, view, period }) {
                 <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
                 <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
                 <Tooltip contentStyle={{ borderRadius: 16, border: "1px solid #e2e8f0" }} />
-                <Area dataKey="value" name="Value score" type="monotone" fill="url(#valueFill)" stroke="#059669" strokeWidth={3} />
-                <Bar dataKey="water" name="Water-to-health" fill="#2563eb" radius={[8, 8, 0, 0]} />
+                <Area dataKey="value" name="Value score" type="monotone" fill="url(#valueFill)" stroke="#059669" strokeWidth={2} />
+                <Bar dataKey="water" name="Water-to-health" fill="#2563eb" radius={[5, 5, 0, 0]} />
                 <Line dataKey="risk" name="Risk score" type="monotone" stroke="#f59e0b" strokeWidth={2.5} dot={{ r: 3 }} />
               </ComposedChart>
             </ResponsiveContainer>
@@ -454,20 +480,23 @@ function RiskPill({ value }) {
 }
 
 function RiskMapView() {
+  const [selectedZoneId, setSelectedZoneId] = useState(snapshot.zones.find((z) => z.status === "Intervention")?.id || snapshot.zones[0]?.id);
+  const selectedZone = snapshot.zones.find((z) => z.id === selectedZoneId) || snapshot.zones[0];
+
   return (
     <div>
       <SectionHeader
         eyebrow="Green Asset Risk Map"
         title="High-risk zones across health, water stress, heat, nature weakness, and data gaps."
-        description="This makes the asset's living layer visible to leadership and actionable for site teams."
-        action={<Badge tone="amber">{snapshot.summary.highRiskGreenZones} intervention zone</Badge>}
+        description="Every intervention count is clickable and tied to a zone, reason, evidence, priority, and recommended action."
+        action={<button onClick={() => setSelectedZoneId(selectedZone.id)} className="rounded-full bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-800 ring-1 ring-amber-200">{snapshot.summary.highRiskGreenZones} intervention zone</button>}
       />
 
       <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
         <Panel className="overflow-hidden">
           <div className="border-b border-slate-100 p-4 sm:p-5">
             <p className="text-base font-semibold text-slate-950">Zone risk table</p>
-            <p className="mt-1 text-sm text-slate-500">Green = stable · Amber = watch · Red = intervention.</p>
+            <p className="mt-1 text-sm text-slate-500">Click a zone to see why it is intervention, watch, or stable.</p>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-[780px] text-sm">
@@ -479,24 +508,20 @@ function RiskMapView() {
                   <th className="px-4 py-3">Heat</th>
                   <th className="px-4 py-3">Nature</th>
                   <th className="px-4 py-3">Data</th>
-                  <th className="px-4 py-3">Priority</th>
+                  <th className="px-4 py-3">Risk Score</th>
                 </tr>
               </thead>
               <tbody>
                 {snapshot.zones.map((zone) => (
-                  <tr key={zone.id} className="border-b border-slate-100">
+                  <tr key={zone.id} onClick={() => setSelectedZoneId(zone.id)} className={cx("cursor-pointer border-b border-slate-100 transition hover:bg-slate-50", selectedZoneId === zone.id && "bg-emerald-50/70")}>
                     <td className="px-4 py-4">
                       <p className="font-semibold text-slate-950">{zone.name}</p>
                       <p className="mt-1 text-xs text-slate-500">{zone.tenantVisibility} tenant visibility</p>
                     </td>
                     {[zone.healthRisk, zone.waterStressRisk, zone.heatExposureRisk, zone.natureWeaknessRisk, zone.dataGapRisk].map((v, i) => (
-                      <td key={i} className="px-4 py-4">
-                        <RiskPill value={v} />
-                      </td>
+                      <td key={i} className="px-4 py-4"><RiskPill value={v} /></td>
                     ))}
-                    <td className="px-4 py-4">
-                      <Badge tone={zone.status === "Intervention" ? "red" : zone.status === "Watch" ? "amber" : "green"}>{zone.riskScore}</Badge>
-                    </td>
+                    <td className="px-4 py-4"><Badge tone={zone.status === "Intervention" ? "red" : zone.status === "Watch" ? "amber" : "green"}>{zone.riskScore}/100</Badge></td>
                   </tr>
                 ))}
               </tbody>
@@ -505,19 +530,29 @@ function RiskMapView() {
         </Panel>
 
         <div className="space-y-4">
+          <Panel className="p-4 sm:p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xl font-semibold text-slate-950">{selectedZone.name}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{selectedZone.reason}</p>
+              </div>
+              <Badge tone={selectedZone.status === "Intervention" ? "red" : selectedZone.status === "Watch" ? "amber" : "green"}>{selectedZone.status}</Badge>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Risk Score</p><p className="text-lg font-semibold text-slate-950">{selectedZone.riskScore}/100</p></div>
+              <div className="rounded-2xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Priority</p><p className="text-lg font-semibold text-slate-950">{selectedZone.priority}</p></div>
+              <div className="rounded-2xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Cost Range</p><p className="text-lg font-semibold text-slate-950">{selectedZone.costRange}</p></div>
+              <div className="rounded-2xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Evidence</p><p className="text-sm font-semibold text-slate-950">{selectedZone.evidence}</p></div>
+            </div>
+            <div className="mt-4 rounded-2xl bg-emerald-50 p-4 text-sm leading-6 text-emerald-950 ring-1 ring-emerald-100">
+              <span className="font-semibold">Recommended action:</span> {selectedZone.recommendedAction}
+            </div>
+          </Panel>
           {snapshot.zones.map((zone) => (
-            <Panel key={zone.id} className="p-4 sm:p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-lg font-semibold text-slate-950">{zone.name}</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{zone.recommendedAction}</p>
-                </div>
-                <Badge tone={zone.status === "Intervention" ? "red" : zone.status === "Watch" ? "amber" : "green"}>{zone.status}</Badge>
-              </div>
-              <div className="mt-4">
-                <Progress value={zone.riskScore} tone={zone.status === "Intervention" ? "red" : zone.status === "Watch" ? "amber" : "green"} />
-              </div>
-            </Panel>
+            <button key={zone.id} onClick={() => setSelectedZoneId(zone.id)} className="block w-full rounded-[24px] border border-slate-200/80 bg-white/95 p-4 text-left shadow-enterprise transition hover:-translate-y-0.5 hover:shadow-lift sm:rounded-[30px] sm:p-5">
+              <div className="flex items-center justify-between gap-3"><p className="text-sm font-semibold text-slate-950">{zone.name}</p><Badge tone={zone.status === "Intervention" ? "red" : zone.status === "Watch" ? "amber" : "green"}>{zone.riskScore}/100</Badge></div>
+              <div className="mt-3"><Progress value={zone.riskScore} tone={zone.status === "Intervention" ? "red" : zone.status === "Watch" ? "amber" : "green"} /></div>
+            </button>
           ))}
         </div>
       </div>
@@ -535,9 +570,9 @@ function NatureWaterView() {
     <div>
       <SectionHeader
         eyebrow="Nature + Water Intelligence"
-        title="Nature-readiness radar plus water-to-health performance."
-        description="This turns greenery into structured nature and water intelligence."
-        action={<Badge tone="green">{snapshot.summary.natureReadinessScore}/100 nature</Badge>}
+        title={`Nature-Readiness Score: ${snapshot.summary.natureReadinessScore}/100`}
+        description="Internal pilot score based on species diversity, native/adaptive share, canopy layering, pollinator support, habitat potential, water resilience, health stability, and risk control. Not certified biodiversity."
+        action={<div className="rounded-3xl bg-emerald-50 px-5 py-3 text-right ring-1 ring-emerald-200"><p className="text-xs font-semibold text-emerald-700">Nature-Readiness Score</p><p className="text-2xl font-semibold text-emerald-900">{snapshot.summary.natureReadinessScore}/100</p></div>}
       />
 
       <div className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
@@ -550,7 +585,7 @@ function NatureWaterView() {
                 <PolarGrid stroke="#cbd5e1" />
                 <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: "#475569" }} />
                 <Tooltip contentStyle={{ borderRadius: 16, border: "1px solid #e2e8f0" }} />
-                <Radar name="Score" dataKey="value" stroke="#059669" fill="#059669" fillOpacity={0.22} strokeWidth={3} />
+                <Radar name="Score" dataKey="value" stroke="#059669" fill="#059669" fillOpacity={0.22} strokeWidth={2} />
               </RadarChart>
             </ResponsiveContainer>
           </div>
@@ -559,8 +594,11 @@ function NatureWaterView() {
         <div className="grid gap-4 md:grid-cols-2">
           {snapshot.nature.components.map((item) => (
             <Panel key={item.key} className="p-4 sm:p-5">
-              <p className="text-sm font-medium text-slate-500">{item.label}</p>
-              <p className="mt-2 text-3xl font-semibold text-slate-950">{formatNumber(item.value, 1)}</p>
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-sm font-medium text-slate-500">{item.label}</p>
+                <Badge tone="slate">Weight {item.max}%</Badge>
+              </div>
+              <p className="mt-2 text-3xl font-semibold text-slate-950">{formatNumber(item.value, 1)}<span className="text-base text-slate-400">/{item.max}</span></p>
               <div className="mt-3">
                 <Progress value={(item.value / item.max) * 100} tone={item.value / item.max > 0.7 ? "green" : item.value / item.max > 0.4 ? "amber" : "red"} />
               </div>
@@ -581,8 +619,8 @@ function NatureWaterView() {
                 <XAxis dataKey="zone" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
                 <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
                 <Tooltip contentStyle={{ borderRadius: 16, border: "1px solid #e2e8f0" }} />
-                <Bar dataKey="index" name="Water-to-health" fill="#2563eb" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="health" name="Zone health" fill="#059669" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="index" name="Water-to-health" fill="#2563eb" radius={[5, 5, 0, 0]} />
+                <Bar dataKey="health" name="Zone health" fill="#059669" radius={[5, 5, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -591,6 +629,134 @@ function NatureWaterView() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
           <MetricCard label="Reused Water" value={`${formatNumber(snapshot.summary.waterReusedLitres)} L`} sub="STP / HVAC / recycled source tracking" icon={Recycle} tone="blue" />
           <MetricCard label="Freshwater Avoided" value={`${formatNumber(snapshot.summary.freshwaterAvoidedLitres)} L`} sub="Baseline vs internal estimate" icon={Waves} tone="green" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CarbonResourceView() {
+  const s = snapshot.summary;
+  const totalWater = s.waterReusedLitres + s.freshwaterAvoidedLitres;
+  const carbonCards = [
+    {
+      label: "Annual Green Asset Contribution Estimate",
+      value: `${s.eligibleInternalContributionTco2e} tCO₂e`,
+      sub: "Internal annual contribution estimate",
+      tone: "green",
+      icon: Leaf,
+      detail: {
+        definition: "Conservative annual CO₂e contribution from mapped green assets for internal planning.",
+        formula: "Eligible contribution = mapped annual proxy × eligibility and evidence-control factor.",
+        source: "Tree/plant inventory, species group, size class, health condition, and evidence level.",
+        evidence: `${snapshot.evidenceLevel} internal model; not certified sequestration`,
+        action: "Upgrade DBH/girth, height, canopy and health measurements to move from E0 to E1."
+      }
+    },
+    {
+      label: "Carbon Stock Proxy",
+      value: `${s.carbonStockProxyTco2e} tCO₂e`,
+      sub: "Existing outdoor biomass stock proxy",
+      tone: "slate",
+      icon: Cloud,
+      detail: {
+        definition: "Estimated carbon currently stored in existing woody biomass.",
+        formula: "Stock proxy = species/size-class biomass factor × mapped asset count × condition factor.",
+        source: "Mapped trees, palms, shrubs and outdoor biomass inventory.",
+        evidence: `${snapshot.evidenceLevel} internal model`,
+        action: "Capture DBH/girth and canopy spread for each tree to strengthen confidence."
+      }
+    },
+    {
+      label: "Water Reuse + Freshwater Avoidance",
+      value: `${formatNumber(totalWater)} L`,
+      sub: "Reused water plus freshwater avoided ledger",
+      tone: "blue",
+      icon: Droplets,
+      detail: {
+        definition: "Water use linked to landscape health and freshwater avoidance.",
+        formula: "Total ledger = reused water + estimated freshwater avoided against baseline.",
+        source: "STP/HVAC/recycled water logs, irrigation observations and zone health data.",
+        evidence: "Measured where logged; otherwise internal estimate",
+        action: "Add meter or irrigation-log linkage for weak zones."
+      }
+    },
+    {
+      label: "Cost Leakage Watch",
+      value: formatCurrency(s.costLeakageEstimateInr),
+      sub: "Replacement, SLA, water and corrective work leakage",
+      tone: "amber",
+      icon: Wallet,
+      detail: {
+        definition: "Preventable cost leakage from repeated issues, replacements, SLA misses and corrective work.",
+        formula: "Leakage = repeat issue count × estimated correction cost + replacement/SLA risk.",
+        source: "Tickets, recurring issues, replacement logs and service reports.",
+        evidence: "Internal operating estimate",
+        action: "Prioritize P1 intervention zones and recurring issue root causes."
+      }
+    },
+  ];
+
+  const trajectory = snapshot.trends.map((item, index) => ({
+    ...item,
+    contribution: Number((0.09 + index * 0.018).toFixed(3)),
+    leakage: item.risk,
+    readiness: item.quality,
+  }));
+
+  return (
+    <div>
+      <SectionHeader
+        eyebrow="Carbon + Resource Impact"
+        title="Carbon, water, and leakage intelligence without overclaiming."
+        description="This is a planning and internal-supporting-estimate view. It does not create carbon credits, offsets, or certified sequestration claims."
+        action={<Badge tone="amber">Claim-controlled</Badge>}
+      />
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {carbonCards.map((card) => <MetricCard key={card.label} {...card} />)}
+      </div>
+
+      <div className="mt-5 grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+        <Panel className="p-4 sm:p-5">
+          <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+            <div>
+              <p className="text-base font-semibold text-slate-950">Performance trajectory</p>
+              <p className="mt-1 text-sm text-slate-500">Contribution, readiness, and leakage movement.</p>
+            </div>
+            <Badge tone="green">Snapshot feed</Badge>
+          </div>
+          <div className="h-[320px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={trajectory} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
+                <Tooltip contentStyle={{ borderRadius: 16, border: "1px solid #e2e8f0" }} />
+                <Line dataKey="readiness" name="Readiness" type="monotone" stroke="#2563eb" strokeWidth={2} dot={{ r: 3 }} />
+                <Line dataKey="leakage" name="Leakage risk" type="monotone" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
+                <Line dataKey="contribution" name="Eligible tCO₂e" type="monotone" stroke="#059669" strokeWidth={2} dot={{ r: 3 }} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        </Panel>
+
+        <div className="space-y-5">
+          <Panel className="p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-base font-semibold text-slate-950">Credit dependency planning</p>
+              <Badge tone="amber">Careful use</Badge>
+            </div>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Planning view only. This does not claim credits are generated or reduced.</p>
+            <div className="mt-5 rounded-3xl bg-slate-950 p-5 text-white">
+              <p className="text-xs font-bold uppercase tracking-[0.25em] text-emerald-300">Planning equation</p>
+              <p className="mt-4 text-lg font-semibold">1,000.0 − {s.eligibleInternalContributionTco2e} = <span className="text-emerald-300">{formatNumber(1000 - s.eligibleInternalContributionTco2e, 1)}</span> tCO₂e</p>
+            </div>
+          </Panel>
+          <Panel className="p-4 sm:p-5">
+            <p className="text-base font-semibold text-slate-950">Claim boundary</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Carbon values are internal supporting estimates and do not constitute carbon credits, offsets, or certified sequestration unless upgraded through third-party review.</p>
+          </Panel>
         </div>
       </div>
     </div>
@@ -678,7 +844,7 @@ function BoardPackView({ role, view }) {
         eyebrow="Board Evidence Pack"
         title="A forwardable asset-level summary for internal use."
         description="A controlled narrative with evidence level, claim boundaries, and investment actions."
-        action={<Badge tone="amber">E0 internal model</Badge>}
+        action={<Badge tone="amber">Evidence controlled</Badge>}
       />
 
       <div className="grid gap-5 xl:grid-cols-[1fr_0.9fr]">
@@ -1054,7 +1220,7 @@ export default function RathGreenOpsCloud() {
   }
 
   const role = user.role;
-  const views = roleViews[role] || roleViews.CEO;
+  const views = roleViews[role] || roleViews["CEO"];
 
   function renderView() {
     switch (activeView) {
@@ -1065,6 +1231,8 @@ export default function RathGreenOpsCloud() {
         return <RiskMapView />;
       case "natureWater":
         return <NatureWaterView />;
+      case "carbonResource":
+        return <CarbonResourceView />;
       case "investment":
         return <InvestmentView />;
       case "boardPack":
@@ -1124,9 +1292,8 @@ export default function RathGreenOpsCloud() {
           </div>
 
           <div className="hidden items-center gap-2 md:flex">
-            <Badge tone="green">{METHOD_VERSION}</Badge>
-            <Badge tone="amber">{snapshot.evidenceLevel}</Badge>
-            <Badge tone="purple">AI-ready</Badge>
+            <Badge tone="green">AI-powered</Badge>
+            <Badge tone="amber">Claim-controlled</Badge>
           </div>
           <Button onClick={() => setUser(null)} variant="light" className="hidden sm:inline-flex">
             <LogOut className="h-4 w-4" /> Logout
@@ -1201,6 +1368,7 @@ export default function RathGreenOpsCloud() {
               <p className="mt-2 text-xs leading-5 text-emerald-900">
                 RATH does not issue carbon credits. Carbon values are internal supporting estimates unless upgraded through review.
               </p>
+              <p className="mt-2 text-[11px] text-emerald-800/70">Methodology: {METHOD_VERSION} · Evidence Level: {snapshot.evidenceLevel}</p>
             </div>
           </div>
         </aside>
@@ -1232,8 +1400,8 @@ export default function RathGreenOpsCloud() {
                   <button key={item} onClick={() => setPeriod(item)} className={cx("rounded-xl px-3 py-2 text-xs font-semibold", period === item ? "bg-white text-slate-950 shadow-sm" : "text-slate-500")}>{item}</button>
                 ))}
               </div>
-              <Button variant="light"><SlidersHorizontal className="h-4 w-4" /> Filters</Button>
-              <Button variant="dark"><Download className="h-4 w-4" /> Export</Button>
+              <Button variant="light" disabled><SlidersHorizontal className="h-4 w-4" /> Filters coming soon</Button>
+              <Button variant="dark" onClick={() => window.print()}><Download className="h-4 w-4" /> Export Board Pack</Button>
             </div>
           </div>
 
