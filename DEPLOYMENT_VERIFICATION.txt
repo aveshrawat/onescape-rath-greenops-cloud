@@ -1,0 +1,6 @@
+Verified:
+- engine.ts exports selectCeoDashboard
+- engine.ts exports selectExecutiveNarrative
+- frontend imports both functions
+- package.json build uses vite build
+- Tailwind pinned to v3.4.17
