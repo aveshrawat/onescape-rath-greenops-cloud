@@ -1,8 +1,26 @@
-# RATH GreenOps Cloud — Deployable Vite App
+# RATH GreenOps Cloud v3 — Full Codebase
 
-## Upload structure
+## Core product screens
 
-GitHub root should look like this:
+1. Overview
+2. Risk Map
+3. Nature
+4. Water
+5. Evidence + Investment
+
+## Backend modules included
+
+- Green Asset Data Quality Score
+- Campus Green Asset Risk Map
+- Nature-Readiness Score
+- Water-to-Health Index
+- Green Infrastructure Investment Planner
+- Green Asset Maturity Pathway
+- Evidence Maturity Funnel
+- Claim-Control Matrix
+- Carbon stock / annual sequestration proxy as supporting evidence only
+
+## GitHub structure
 
 ```text
 package.json
@@ -11,6 +29,7 @@ vite.config.ts
 tsconfig.json
 tailwind.config.js
 postcss.config.js
+README.md
 src/
   main.tsx
   App.tsx
@@ -21,31 +40,14 @@ src/
       engine.ts
 ```
 
-## Local run
+## Vercel settings
 
-```bash
-npm install
-npm run dev
-```
+Framework: Vite  
+Build command: `npm run build`  
+Output directory: `dist`  
+Install command: `npm install`
 
-## Vercel
+## Positioning guardrail
 
-Framework preset: Vite
-
-Build command:
-```bash
-npm run build
-```
-
-Output directory:
-```bash
-dist
-```
-
-## Important positioning
-
-All values are demo/sample values. Use:
-- Internal green asset contribution estimate
-- Indicative annual sequestration proxy
-- External credit dependency planning estimate
-- Not certified carbon credits
+Use: "internal green asset contribution estimate."  
+Avoid: "carbon credits generated", "certified biodiversity score", "guaranteed savings".
