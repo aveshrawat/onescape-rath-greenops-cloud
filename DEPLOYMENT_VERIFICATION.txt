@@ -1,6 +1,14 @@
-Verified:
-- engine.ts exports selectCeoDashboard
-- engine.ts exports selectExecutiveNarrative
-- frontend imports both functions
-- package.json build uses vite build
-- Tailwind pinned to v3.4.17
+Manual verification included in this package:
+- Full repo code generated together, not split patch.
+- React files use .jsx / .js to avoid TypeScript build mismatch.
+- No TypeScript compile step.
+- Tailwind pinned to v3.4.17.
+- AI route uses environment variables only.
+- AI route has fallback summary if no API key or provider fails.
+- Role-based login included.
+- CEO / ESG / IFM / PM dashboards have different navigation and content.
+- Nature radar restored.
+- Risk map, investment planner, evidence funnel, claim safety, operations control included.
+
+- Local npm install and npm run build completed successfully in this environment.
+- Vite build output succeeded; only non-blocking bundle-size warning from Recharts.
