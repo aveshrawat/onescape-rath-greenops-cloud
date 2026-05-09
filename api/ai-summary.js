@@ -26,7 +26,7 @@ function fallbackSummary(role, view, payload) {
     ].join("\n");
   }
 
-  if (role === "IFM Partner") {
+  if (role === "Property Operations") {
     return [
       "AI IFM/QBR Summary",
       `Current operating view shows ${payload?.tickets?.filter((t) => t.status === "Open").length ?? 0} open tickets and one SLA breach in the demo dataset.`,
@@ -73,8 +73,9 @@ Write a role-specific summary with:
 3. What not to claim
 4. Next action`;
 
+    const wantsClaude = (provider === "anthropic" || provider === "auto") && process.env.ANTHROPIC_API_KEY;
     const wantsOpenAI = (provider === "openai" || provider === "auto") && process.env.OPENAI_API_KEY;
-    const wantsClaude = (provider === "anthropic" || provider === "auto") && process.env.ANTHROPIC_API_KEY && !wantsOpenAI;
+
 
     if (wantsOpenAI) {
       const response = await fetch("https://api.openai.com/v1/responses", {
