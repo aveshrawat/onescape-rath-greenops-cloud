@@ -73,19 +73,23 @@ import {
   getBoardNarrative,
   getCarbonMetrics,
   getDecisionStrip,
+  getDataQualityView,
   getESGReadiness,
+  getFilteredSnapshot,
   getIFMExecutive,
   getInvestmentScenarios,
+  getLeapExecutiveView,
   getMetricCards,
   getPMExecutive,
   getRoleMetrics,
   getSnapshot,
   roleViews,
+  DEFAULT_FILTERS,
 } from "./domain/engine.js";
-import { openBoardPack } from "./export/boardReport.js";
-import { openEsgEvidencePack } from "./export/esgReport.js";
-import { openQbrPack } from "./export/qbrReport.js";
-import { openDailyActionSheet } from "./export/dailyActionSheet.js";
+import { openAssetIntelligenceSummary, openBoardPack, openInvestmentScenarioPack } from "./export/boardReport.js";
+import { openClaimSafetyRegister, openDataQualityExceptionReport, openEsgEvidencePack } from "./export/esgReport.js";
+import { openQbrPack, openVendorPerformanceScorecard, openWeeklyExceptionReport } from "./export/qbrReport.js";
+import { openDailyActionSheet, openOpenTicketTracker, openZoneInspectionList } from "./export/dailyActionSheet.js";
 
 const iconByView = {
   value: Gauge,
@@ -430,8 +434,12 @@ function PeriodTabs({ periodKey, setPeriodKey }) {
   );
 }
 
-function FilterDrawer({ open, onClose, filters, setFilters, data }) {
+function FilterDrawer({ open, onClose, filters, setFilters, data, role }) {
   if (!open) return null;
+
+  const isCeo = role === ROLES.CEO;
+  const isEsg = role === ROLES.ESG;
+  const isOps = role === ROLES.IFM || role === ROLES.PM;
 
   return createPortal(
     <div className="fixed inset-0 z-[10000]">
@@ -462,39 +470,85 @@ function FilterDrawer({ open, onClose, filters, setFilters, data }) {
             </select>
           </label>
 
-          <label className="block">
-            <span className="text-sm font-semibold text-slate-700">Investment priority</span>
-            <select
-              value={filters.priority}
-              onChange={(e) => setFilters((current) => ({ ...current, priority: e.target.value }))}
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none"
-            >
-              <option value="all">All priorities</option>
-              <option value="P1">P1 only</option>
-              <option value="P2">P2 only</option>
-            </select>
-          </label>
+          {isCeo && (
+            <label className="block">
+              <span className="text-sm font-semibold text-slate-700">Investment priority</span>
+              <select
+                value={filters.priority}
+                onChange={(e) => setFilters((current) => ({ ...current, priority: e.target.value }))}
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none"
+              >
+                <option value="all">All priorities</option>
+                <option value="P1">P1 only</option>
+                <option value="P2">P2 only</option>
+              </select>
+            </label>
+          )}
 
-          <label className="flex items-center justify-between rounded-2xl bg-slate-50 p-4">
-            <div>
-              <p className="text-sm font-semibold text-slate-950">Intervention zones only</p>
-              <p className="mt-1 text-xs text-slate-500">Show only high-risk zones requiring action</p>
-            </div>
-            <input
-              type="checkbox"
-              checked={filters.interventionOnly}
-              onChange={(e) => setFilters((current) => ({ ...current, interventionOnly: e.target.checked }))}
-              className="h-5 w-5 accent-emerald-600"
-            />
-          </label>
+          {isEsg && (
+            <label className="block">
+              <span className="text-sm font-semibold text-slate-700">Evidence status</span>
+              <select
+                value={filters.evidenceStatus}
+                onChange={(e) => setFilters((current) => ({ ...current, evidenceStatus: e.target.value }))}
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none"
+              >
+                <option value="all">All evidence</option>
+                <option value="Complete">Complete only</option>
+                <option value="Usable">Usable only</option>
+                <option value="Weak">Weak only</option>
+              </select>
+            </label>
+          )}
+
+          {isOps && (
+            <>
+              <label className="block">
+                <span className="text-sm font-semibold text-slate-700">Ticket status</span>
+                <select
+                  value={filters.ticketStatus}
+                  onChange={(e) => setFilters((current) => ({ ...current, ticketStatus: e.target.value }))}
+                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none"
+                >
+                  <option value="all">All tickets</option>
+                  <option value="Open">Open only</option>
+                  <option value="Closed">Closed only</option>
+                </select>
+              </label>
+              <label className="block">
+                <span className="text-sm font-semibold text-slate-700">SLA status</span>
+                <select
+                  value={filters.slaStatus}
+                  onChange={(e) => setFilters((current) => ({ ...current, slaStatus: e.target.value }))}
+                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none"
+                >
+                  <option value="all">All SLA states</option>
+                  <option value="Within SLA">Within SLA</option>
+                  <option value="Met">Met</option>
+                  <option value="Breached">Breached</option>
+                </select>
+              </label>
+            </>
+          )}
+
+          {(isCeo || isOps) && (
+            <label className="flex items-center justify-between rounded-2xl bg-slate-50 p-4">
+              <div>
+                <p className="text-sm font-semibold text-slate-950">Intervention zones only</p>
+                <p className="mt-1 text-xs text-slate-500">Show only high-risk zones requiring action</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={filters.interventionOnly}
+                onChange={(e) => setFilters((current) => ({ ...current, interventionOnly: e.target.checked }))}
+                className="h-5 w-5 accent-emerald-600"
+              />
+            </label>
+          )}
         </div>
 
         <div className="mt-6 flex gap-3">
-          <Button
-            variant="light"
-            className="flex-1"
-            onClick={() => setFilters({ zoneId: "all", priority: "all", interventionOnly: false })}
-          >
+          <Button variant="light" className="flex-1" onClick={() => setFilters({ ...DEFAULT_FILTERS })}>
             Reset
           </Button>
           <Button variant="dark" className="flex-1" onClick={onClose}>
@@ -504,6 +558,27 @@ function FilterDrawer({ open, onClose, filters, setFilters, data }) {
       </div>
     </div>,
     document.body
+  );
+}
+
+function ActiveFilterBar({ data, filters, setFilters }) {
+  const chips = [];
+  if (filters.zoneId !== "all") chips.push(data.scopeLabel);
+  if (filters.priority !== "all") chips.push(`${filters.priority} investments`);
+  if (filters.evidenceStatus !== "all") chips.push(`${filters.evidenceStatus} evidence`);
+  if (filters.ticketStatus !== "all") chips.push(`${filters.ticketStatus} tickets`);
+  if (filters.slaStatus !== "all") chips.push(`${filters.slaStatus}`);
+  if (filters.interventionOnly) chips.push("Intervention only");
+  if (!chips.length) return null;
+
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-2 rounded-[22px] border border-emerald-100 bg-emerald-50/80 p-3">
+      <span className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-800">Active scope</span>
+      {chips.map((chip) => <Badge key={chip} tone="green">{chip}</Badge>)}
+      <button onClick={() => setFilters({ ...DEFAULT_FILTERS })} className="ml-auto text-xs font-semibold text-emerald-800 underline-offset-4 hover:underline">
+        Reset filters
+      </button>
+    </div>
   );
 }
 
@@ -635,8 +710,8 @@ function AiDrawer({ open, onClose, role, view, periodKey, filters }) {
 }
 
 
-function DecisionStrip({ periodKey }) {
-  const decisions = getDecisionStrip(periodKey);
+function DecisionStrip({ periodKey, filters }) {
+  const decisions = getDecisionStrip(periodKey, filters);
   return (
     <Panel className="mb-5 overflow-hidden">
       <div className="grid gap-px bg-slate-200 lg:grid-cols-4">
@@ -652,8 +727,8 @@ function DecisionStrip({ periodKey }) {
   );
 }
 
-function ReportabilityReadinessStrip({ periodKey }) {
-  const esg = getESGReadiness(periodKey);
+function ReportabilityReadinessStrip({ periodKey, filters }) {
+  const esg = getESGReadiness(periodKey, filters);
   return (
     <div className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
       {esg.cards.map((item) => (
@@ -663,8 +738,8 @@ function ReportabilityReadinessStrip({ periodKey }) {
   );
 }
 
-function MissingDataActionQueue({ periodKey }) {
-  const esg = getESGReadiness(periodKey);
+function MissingDataActionQueue({ periodKey, filters }) {
+  const esg = getESGReadiness(periodKey, filters);
   return (
     <Panel className="overflow-hidden">
       <div className="border-b border-slate-100 p-4 sm:p-5">
@@ -697,8 +772,8 @@ function MissingDataActionQueue({ periodKey }) {
   );
 }
 
-function ClaimUpgradePath({ periodKey }) {
-  const esg = getESGReadiness(periodKey);
+function ClaimUpgradePath({ periodKey, filters }) {
+  const esg = getESGReadiness(periodKey, filters);
   return (
     <Panel className="mt-5 overflow-hidden">
       <div className="border-b border-slate-100 p-4 sm:p-5">
@@ -731,8 +806,8 @@ function ClaimUpgradePath({ periodKey }) {
   );
 }
 
-function ClientEscalationWatch({ periodKey }) {
-  const ifm = getIFMExecutive(periodKey);
+function ClientEscalationWatch({ periodKey, filters }) {
+  const ifm = getIFMExecutive(periodKey, filters);
   return (
     <Panel className="p-4 sm:p-5">
       <p className="text-base font-semibold text-slate-950">Client escalation watch</p>
@@ -753,8 +828,8 @@ function ClientEscalationWatch({ periodKey }) {
   );
 }
 
-function QbrReadinessPanel({ periodKey }) {
-  const ifm = getIFMExecutive(periodKey);
+function QbrReadinessPanel({ periodKey, filters }) {
+  const ifm = getIFMExecutive(periodKey, filters);
   return (
     <Panel className="p-4 sm:p-5">
       <p className="text-base font-semibold text-slate-950">QBR readiness</p>
@@ -771,8 +846,8 @@ function QbrReadinessPanel({ periodKey }) {
   );
 }
 
-function DailyActionQueue({ periodKey }) {
-  const pm = getPMExecutive(periodKey);
+function DailyActionQueue({ periodKey, filters }) {
+  const pm = getPMExecutive(periodKey, filters);
   return (
     <Panel className="p-4 sm:p-5">
       <p className="text-base font-semibold text-slate-950">Daily action queue</p>
@@ -793,8 +868,8 @@ function DailyActionQueue({ periodKey }) {
   );
 }
 
-function ZoneVisitQueue({ periodKey }) {
-  const pm = getPMExecutive(periodKey);
+function ZoneVisitQueue({ periodKey, filters }) {
+  const pm = getPMExecutive(periodKey, filters);
   return (
     <Panel className="p-4 sm:p-5">
       <p className="text-base font-semibold text-slate-950">Zone visit queue</p>
@@ -812,8 +887,8 @@ function ZoneVisitQueue({ periodKey }) {
   );
 }
 
-function ValueOverview({ data, role, periodKey }) {
-  const metrics = getMetricCards(periodKey);
+function ValueOverview({ data, role, periodKey, filters }) {
+  const metrics = getMetricCards(periodKey, filters);
 
   return (
     <div>
@@ -824,7 +899,7 @@ function ValueOverview({ data, role, periodKey }) {
         action={<Badge tone="dark">{data.period}</Badge>}
       />
 
-      <DecisionStrip periodKey={periodKey} />
+      <DecisionStrip periodKey={periodKey} filters={filters} />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {metrics.map((metric) => (
@@ -1040,8 +1115,8 @@ function NatureWaterView({ data }) {
   );
 }
 
-function CarbonResourceView({ data, periodKey }) {
-  const metrics = getCarbonMetrics(periodKey);
+function CarbonResourceView({ data, periodKey, filters }) {
+  const metrics = getCarbonMetrics(periodKey, filters);
   return (
     <div>
       <SectionHeader
@@ -1233,8 +1308,8 @@ function InvestmentPlannerView({ data, filteredInvestments }) {
 }
 
 function BoardPackView({ data, periodKey, filters }) {
-  const memo = getBoardDecisionMemo(periodKey);
-  const narrative = getBoardNarrative(periodKey);
+  const memo = getBoardDecisionMemo(periodKey, filters);
+  const narrative = getBoardNarrative(periodKey, filters);
 
   return (
     <div>
@@ -1306,21 +1381,21 @@ function BoardPackView({ data, periodKey, filters }) {
   );
 }
 
-function EvidenceOverview({ data }) {
+function EvidenceOverview({ data, filters }) {
   return (
     <div>
       <SectionHeader
         eyebrow="Evidence & Nature-Readiness Studio"
         title="Disclosure readiness, evidence maturity, and claim control."
-        description="Senior ESG view: what can be used today, what remains blocked, and what is required next."
+        description={`Senior ESG view for ${data.scopeLabel}: what can be used today, what remains blocked, and what is required next.`}
         action={<Badge tone="purple">{data.summary.dataQualityScore}/100 data quality</Badge>}
       />
 
-      <ReportabilityReadinessStrip periodKey={data.periodKey} />
+      <ReportabilityReadinessStrip periodKey={data.periodKey} filters={filters} />
 
       <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
         <EvidenceFunnel data={data} />
-        <MissingDataActionQueue periodKey={data.periodKey} />
+        <MissingDataActionQueue periodKey={data.periodKey} filters={filters} />
       </div>
     </div>
   );
@@ -1351,11 +1426,36 @@ function EvidenceFunnel({ data }) {
   );
 }
 
-function DataQualityTable({ data }) {
+function DataQualityView({ data, filters }) {
+  const quality = getDataQualityView(data.periodKey, filters);
+  return (
+    <div>
+      <SectionHeader
+        eyebrow="Data Quality Control"
+        title="Operational evidence quality, exception density, and closure priorities."
+        description={`Distinct from evidence maturity: this view shows the completeness of underlying records for ${data.scopeLabel}.`}
+        action={<Badge tone="purple">{data.summary.dataQualityScore}/100 score</Badge>}
+      />
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        {quality.cards.map((item) => (
+          <SimpleMetricCard key={item.label} metric={item} icon={Database} />
+        ))}
+      </div>
+
+      <div className="mt-5 grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+        <DataQualityTable rows={quality.rows} />
+        <DataQualityExceptionRegister exceptions={quality.exceptions} />
+      </div>
+    </div>
+  );
+}
+
+function DataQualityTable({ rows }) {
   return (
     <Panel className="overflow-hidden">
       <div className="border-b border-slate-100 p-4 sm:p-5">
-        <p className="text-base font-semibold text-slate-950">Green Asset Data Quality Score</p>
+        <p className="text-base font-semibold text-slate-950">Data quality matrix</p>
         <p className="mt-1 text-sm text-slate-500">Completeness and missing evidence by category.</p>
       </div>
       <div className="overflow-x-auto">
@@ -1369,7 +1469,7 @@ function DataQualityTable({ data }) {
             </tr>
           </thead>
           <tbody>
-            {data.dataQuality.map((item) => (
+            {rows.map((item) => (
               <tr key={item.area} className="border-b border-slate-100">
                 <td className="px-4 py-4 font-semibold text-slate-950">{item.area}</td>
                 <td className="px-4 py-4">
@@ -1389,17 +1489,41 @@ function DataQualityTable({ data }) {
   );
 }
 
-function LeapMapping({ data }) {
+function DataQualityExceptionRegister({ exceptions }) {
+  return (
+    <Panel className="p-4 sm:p-5">
+      <p className="text-base font-semibold text-slate-950">Exception register</p>
+      <p className="mt-1 text-sm text-slate-500">Rows still below a complete evidence state.</p>
+      <div className="mt-4 space-y-3">
+        {exceptions.length ? exceptions.map((item) => (
+          <div key={item.area} className="rounded-2xl bg-slate-50 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-slate-950">{item.area}</p>
+              <Badge tone={item.status === "Weak" ? "red" : "amber"}>{item.status}</Badge>
+            </div>
+            <p className="mt-2 text-sm leading-6 text-slate-700">{item.gap}</p>
+            <p className="mt-1 text-xs text-slate-500">Score: {item.score}/100</p>
+          </div>
+        )) : (
+          <div className="rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-800">No open quality exceptions in the selected scope.</div>
+        )}
+      </div>
+    </Panel>
+  );
+}
+
+function LeapMapping({ data, filters }) {
+  const leap = getLeapExecutiveView(data.periodKey, filters);
   return (
     <div>
       <SectionHeader
         eyebrow="LEAP-Aligned Nature Baseline"
         title="Locate, Evaluate, Assess, Prepare — adapted for living green assets."
-        description="This is internal alignment support, not formal TNFD compliance."
+        description={`Internal alignment support for ${data.scopeLabel}; not formal TNFD compliance.`}
         action={<Badge tone="blue">Nature baseline</Badge>}
       />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {data.leap.map((item) => (
+        {leap.stages.map((item) => (
           <Panel key={item.stage} className="p-4 sm:p-5">
             <p className="text-sm font-semibold text-slate-500">{item.stage}</p>
             <p className="mt-2 text-3xl font-semibold text-slate-950">{item.score}/100</p>
@@ -1407,6 +1531,53 @@ function LeapMapping({ data }) {
             <p className="mt-3 text-xs leading-5 text-slate-500">{item.output}</p>
           </Panel>
         ))}
+      </div>
+
+      <div className="mt-5 grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
+        <Panel className="overflow-hidden">
+          <div className="border-b border-slate-100 p-4 sm:p-5">
+            <p className="text-base font-semibold text-slate-950">LEAP decision matrix</p>
+            <p className="mt-1 text-sm text-slate-500">How each stage converts into management use.</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-[860px] text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-500">
+                  <th className="px-4 py-3">Stage</th>
+                  <th className="px-4 py-3">Current evidence</th>
+                  <th className="px-4 py-3">Management question</th>
+                  <th className="px-4 py-3">Next action</th>
+                  <th className="px-4 py-3">Use</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leap.stages.map((item) => (
+                  <tr key={item.stage} className="border-b border-slate-100">
+                    <td className="px-4 py-4 font-semibold text-slate-950">{item.stage}</td>
+                    <td className="px-4 py-4 text-slate-700">{item.evidence}</td>
+                    <td className="px-4 py-4 text-slate-700">{item.managementQuestion}</td>
+                    <td className="px-4 py-4 text-slate-700">{item.nextAction}</td>
+                    <td className="px-4 py-4"><Badge tone="blue">{item.reportingUse}</Badge></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+
+        <Panel className="p-4 sm:p-5">
+          <p className="text-base font-semibold text-slate-950">Material signals</p>
+          <p className="mt-1 text-sm text-slate-500">What a senior ESG lead should take away.</p>
+          <div className="mt-4 space-y-3">
+            {leap.materialSignals.map((item) => (
+              <div key={item.title} className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">{item.title}</p>
+                <p className="mt-2 text-sm font-semibold text-slate-950">{item.value}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">{item.detail}</p>
+              </div>
+            ))}
+          </div>
+        </Panel>
       </div>
     </div>
   );
@@ -1445,7 +1616,7 @@ function ClaimSafety({ data }) {
           </table>
         </div>
       </Panel>
-      <ClaimUpgradePath periodKey={data.periodKey} />
+      <ClaimUpgradePath periodKey={data.periodKey} filters={data.activeFilters} />
     </div>
   );
 }
@@ -1481,23 +1652,23 @@ function ExportsView({ periodKey, filters, role }) {
   const exportSets = {
     [ROLES.CEO]: [
       ["Board Decision Memo", "PDF-ready", "CEO-forwardable decision pack.", () => openBoardPack(periodKey, filters)],
-      ["Investment Scenario Pack", "PDF-ready", "Scenario comparison for capital committee.", () => openBoardPack(periodKey, filters)],
-      ["Asset Intelligence Summary", "PDF-ready", "Portfolio-level management summary.", () => openBoardPack(periodKey, filters)],
+      ["Investment Scenario Pack", "PDF-ready", "Scenario comparison for capital committee.", () => openInvestmentScenarioPack(periodKey, filters)],
+      ["Asset Intelligence Summary", "PDF-ready", "Portfolio-level management summary.", () => openAssetIntelligenceSummary(periodKey, filters)],
     ],
     [ROLES.ESG]: [
-      ["Monthly ESG Evidence Pack", "PDF-ready", "Evidence maturity, gaps, and claim boundaries.", () => openEsgEvidencePack(periodKey)],
-      ["Claim Safety Register", "PDF-ready", "Allowed, conditional, and blocked language.", () => openEsgEvidencePack(periodKey)],
-      ["Data Quality Exception Report", "PDF-ready", "Gaps blocking E1 readiness.", () => openEsgEvidencePack(periodKey)],
+      ["Monthly ESG Evidence Pack", "PDF-ready", "Evidence maturity, gaps, and claim boundaries.", () => openEsgEvidencePack(periodKey, filters)],
+      ["Claim Safety Register", "PDF-ready", "Allowed, conditional, and blocked language.", () => openClaimSafetyRegister(periodKey, filters)],
+      ["Data Quality Exception Report", "PDF-ready", "Gaps blocking E1 readiness.", () => openDataQualityExceptionReport(periodKey, filters)],
     ],
     [ROLES.IFM]: [
-      ["QBR Service Pack", "PDF-ready", "SLA, root causes, closure proof, and escalation watch.", () => openQbrPack(periodKey)],
-      ["Vendor Performance Scorecard", "PDF-ready", "Vendor accountability and reopen risk.", () => openQbrPack(periodKey)],
-      ["Weekly Exception Report", "PDF-ready", "Items requiring client attention.", () => openQbrPack(periodKey)],
+      ["QBR Service Pack", "PDF-ready", "SLA, root causes, closure proof, and escalation watch.", () => openQbrPack(periodKey, filters)],
+      ["Vendor Performance Scorecard", "PDF-ready", "Vendor accountability and reopen risk.", () => openVendorPerformanceScorecard(periodKey, filters)],
+      ["Weekly Exception Report", "PDF-ready", "Items requiring client attention.", () => openWeeklyExceptionReport(periodKey, filters)],
     ],
     [ROLES.PM]: [
-      ["Daily Action Sheet", "PDF-ready", "Priority work for today.", () => openDailyActionSheet(periodKey)],
-      ["Zone Inspection List", "PDF-ready", "Site visit queue and reasons.", () => openDailyActionSheet(periodKey)],
-      ["Open Ticket Tracker", "PDF-ready", "Outstanding tasks and SLA status.", () => openDailyActionSheet(periodKey)],
+      ["Daily Action Sheet", "PDF-ready", "Priority work for today.", () => openDailyActionSheet(periodKey, filters)],
+      ["Zone Inspection List", "PDF-ready", "Site visit queue and reasons.", () => openZoneInspectionList(periodKey, filters)],
+      ["Open Ticket Tracker", "PDF-ready", "Outstanding tasks and SLA status.", () => openOpenTicketTracker(periodKey, filters)],
     ],
   };
   const items = exportSets[role] || exportSets[ROLES.ESG];
@@ -1527,8 +1698,8 @@ function ExportsView({ periodKey, filters, role }) {
   );
 }
 
-function OperationsControl({ data, role }) {
-  const metrics = getRoleMetrics(role, data.periodKey);
+function OperationsControl({ data, role, filters }) {
+  const metrics = getRoleMetrics(role, data.periodKey, filters);
   const isIFM = role === ROLES.IFM;
 
   return (
@@ -1548,8 +1719,8 @@ function OperationsControl({ data, role }) {
       </div>
 
       <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_0.9fr]">
-        {isIFM ? <ClientEscalationWatch periodKey={data.periodKey} /> : <DailyActionQueue periodKey={data.periodKey} />}
-        {isIFM ? <QbrReadinessPanel periodKey={data.periodKey} /> : <ZoneVisitQueue periodKey={data.periodKey} />}
+        {isIFM ? <ClientEscalationWatch periodKey={data.periodKey} filters={filters} /> : <DailyActionQueue periodKey={data.periodKey} filters={filters} />}
+        {isIFM ? <QbrReadinessPanel periodKey={data.periodKey} filters={filters} /> : <ZoneVisitQueue periodKey={data.periodKey} filters={filters} />}
       </div>
 
       <div className="mt-5">
@@ -1701,13 +1872,14 @@ export default function RathGreenOpsCloud() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [periodKey, setPeriodKey] = useState("30d");
   const [query, setQuery] = useState("");
-  const [filters, setFilters] = useState({ zoneId: "all", priority: "all", interventionOnly: false });
+  const [filters, setFilters] = useState({ ...DEFAULT_FILTERS });
   const [filterOpen, setFilterOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
 
   const role = user?.role || ROLES.CEO;
   const views = user ? roleViews[user.role] : roleViews[ROLES.CEO];
-  const data = useMemo(() => getSnapshot(periodKey), [periodKey]);
+  const rawData = useMemo(() => getSnapshot(periodKey), [periodKey]);
+  const data = useMemo(() => getFilteredSnapshot(periodKey, filters), [periodKey, filters]);
   const filteredZones = useMemo(
     () => filterZones(data, { ...filters, query }),
     [data, filters, query]
@@ -1717,8 +1889,8 @@ export default function RathGreenOpsCloud() {
     [data, filters]
   );
   const filteredTickets = useMemo(
-    () => filterTickets(data, { query }),
-    [data, query]
+    () => filterTickets(data, { query, ...filters }),
+    [data, query, filters]
   );
 
   function login(selectedUser) {
@@ -1731,23 +1903,24 @@ export default function RathGreenOpsCloud() {
   function renderView() {
     switch (activeView) {
       case "value":
-        return <ValueOverview data={data} role={role} periodKey={periodKey} />;
+        return <ValueOverview data={data} role={role} periodKey={periodKey} filters={filters} />;
       case "risk":
       case "zoneHealth":
         return <RiskMapView data={data} filteredZones={filteredZones} />;
       case "natureWater":
         return <NatureWaterView data={data} />;
       case "carbonResource":
-        return <CarbonResourceView data={data} periodKey={periodKey} />;
+        return <CarbonResourceView data={data} periodKey={periodKey} filters={filters} />;
       case "investment":
         return <InvestmentPlannerView data={data} filteredInvestments={filteredInvestments} />;
       case "boardPack":
         return <BoardPackView data={data} periodKey={periodKey} filters={filters} />;
       case "evidence":
+        return <EvidenceOverview data={data} filters={filters} />;
       case "dataQuality":
-        return <EvidenceOverview data={data} />;
+        return <DataQualityView data={data} filters={filters} />;
       case "leap":
-        return <LeapMapping data={data} />;
+        return <LeapMapping data={data} filters={filters} />;
       case "claimSafety":
         return <ClaimSafety data={data} />;
       case "methodology":
@@ -1755,7 +1928,7 @@ export default function RathGreenOpsCloud() {
       case "exports":
         return <ExportsView periodKey={periodKey} filters={filters} role={role} />;
       case "control":
-        return <OperationsControl data={data} role={role} />;
+        return <OperationsControl data={data} role={role} filters={filters} />;
       case "tickets":
         return (
           <div>
@@ -1774,7 +1947,7 @@ export default function RathGreenOpsCloud() {
       case "serviceReport":
         return <ServiceReport data={data} role={role} />;
       default:
-        return <ValueOverview data={data} role={role} periodKey={periodKey} />;
+        return <ValueOverview data={data} role={role} periodKey={periodKey} filters={filters} />;
     }
   }
 
@@ -1923,11 +2096,12 @@ export default function RathGreenOpsCloud() {
             </div>
           </div>
 
+          <ActiveFilterBar data={data} filters={filters} setFilters={setFilters} />
           {renderView()}
         </section>
       </main>
 
-      <FilterDrawer open={filterOpen} onClose={() => setFilterOpen(false)} filters={filters} setFilters={setFilters} data={data} />
+      <FilterDrawer open={filterOpen} onClose={() => setFilterOpen(false)} filters={filters} setFilters={setFilters} data={rawData} role={role} />
       <AiLauncher onClick={() => setAiOpen(true)} role={role} />
       <AiDrawer open={aiOpen} onClose={() => setAiOpen(false)} role={role} view={activeView} periodKey={periodKey} filters={filters} />
     </div>
