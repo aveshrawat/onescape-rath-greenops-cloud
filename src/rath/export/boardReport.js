@@ -64,8 +64,13 @@ export function openBoardPack(periodKey = "30d", filters = {}) {
   const data = getFilteredSnapshot(periodKey, filters);
   const memo = getBoardDecisionMemo(periodKey, filters);
   const narrative = getBoardNarrative(periodKey, filters);
+  const scenarios = getInvestmentScenarios(periodKey);
+  const scenarioRows = scenarios.map((item) => `<tr><td>${esc(item.name)}</td><td>${esc(item.capex)}</td><td>${esc(item.outcome)}</td></tr>`).join("");
   const body = `${metrics(data)}
+    <div class="card"><h2>Portfolio context</h2><p>${esc(memo.portfolioContext)}</p></div>
     <div class="card dark"><h2>Decision requested</h2><p>${esc(memo.decisionRequired)}</p><h2>Executive recommendation</h2><p>${esc(memo.recommendation)}</p></div>
+    <div class="card"><h2>Capital scenarios</h2><table><thead><tr><th>Scenario</th><th>Cost</th><th>Outcome</th></tr></thead><tbody>${scenarioRows}</tbody></table></div>
+    <div class="card"><h2>Pilot outcome at completion</h2><p>${esc(memo.pilotOutcome)}</p></div>
     <div class="card"><h2>Board narrative</h2><ol>${narrative.map((item) => `<li>${esc(item)}</li>`).join("")}</ol></div>
     <div class="card"><h2>Next 90 days</h2><ul>${memo.next90Days.map((item) => `<li>${esc(item)}</li>`).join("")}</ul></div>`;
   openHtml(shell("RATH Board Decision Memo", "Confidential · Internal Board Use", `${data.siteName} · ${data.period} · ${data.scopeLabel}`, body), "RATH Board Decision Memo");
@@ -77,7 +82,7 @@ export function openInvestmentScenarioPack(periodKey = "30d", filters = {}) {
   const rows = scenarios.map((item) => `<tr><td>${esc(item.name)}</td><td>${esc(item.capex)}</td><td>${esc(item.outcome)}</td><td>${esc(item.riskIfChosen)}</td><td>${esc(item.recommendation)}</td></tr>`).join("");
   const body = `${metrics(data)}
     <div class="card"><h2>Capital scenario comparison</h2><table><thead><tr><th>Scenario</th><th>Capex</th><th>Outcome</th><th>Risk if chosen</th><th>Recommendation</th></tr></thead><tbody>${rows}</tbody></table></div>
-    <div class="card dark"><h2>Management recommendation</h2><p>Approve the Optimize pathway now; hold the Differentiate pathway until E1 evidence maturity is achieved.</p></div>`;
+    <div class="card dark"><h2>Management recommendation</h2><p>Approve the Optimise pathway now; hold the Differentiate pathway until E1 evidence maturity is achieved.</p></div>`;
   openHtml(shell("RATH Investment Scenario Pack", "Capital Allocation", `${data.siteName} · ${data.period} · ${data.scopeLabel}`, body), "RATH Investment Scenario Pack");
 }
 
