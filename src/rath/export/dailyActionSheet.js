@@ -10,8 +10,9 @@ function esc(value) {
 }
 
 function openHtml(html, name) {
-  const win = window.open("", "_blank", "noopener,noreferrer");
+  const win = window.open("", "_blank");
   if (!win) return;
+  win.opener = null;
   win.document.open();
   win.document.write(html);
   win.document.close();

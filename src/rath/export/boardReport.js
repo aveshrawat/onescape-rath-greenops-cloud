@@ -323,8 +323,9 @@ export function buildBoardPackHtml(periodKey = "30d", filters = {}) {
 
 export function openBoardPack(periodKey = "30d", filters = {}) {
   const html = buildBoardPackHtml(periodKey, filters);
-  const reportWindow = window.open("", "_blank", "noopener,noreferrer");
+  const reportWindow = window.open("", "_blank");
   if (!reportWindow) return false;
+  reportWindow.opener = null;
   reportWindow.document.open();
   reportWindow.document.write(html);
   reportWindow.document.close();
