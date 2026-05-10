@@ -1,33 +1,17 @@
-RATH GreenOps v6.1 JSX-only Fresh Upload
-
-This package intentionally uses ONLY JavaScript / JSX app files.
-No .tsx files should exist in your GitHub repo after upload.
-
-IMPORTANT UPLOAD METHOD:
-1. In GitHub, delete the old src folder completely.
-2. Delete any old tsconfig.json if it exists.
-3. Delete old .tsx files if any remain.
-4. Upload/replace the full package contents.
-
-Expected app file structure:
-package.json
-index.html
-vite.config.js
-tailwind.config.js
-postcss.config.js
-api/ai-summary.js
-src/main.jsx
-src/index.css
-src/rath/RathGreenOpsCloud.jsx
-src/rath/domain/engine.js
-
-Vercel settings:
-Build command: npm run build
-Output directory: dist
-Install command: npm install
-
-Demo credentials:
-CEO: ceo@client.com / 111111
-ESG Team: esg@client.com / 222222
-IFM Partner: ifm@partner.com / 333333
-Property Manager: pm@client.com / 444444
+Fresh upload checklist:
+1. Replace the full repo with this package.
+2. Keep only:
+   - package.json
+   - package-lock.json
+   - index.html
+   - vite.config.js
+   - tailwind.config.js
+   - postcss.config.js
+   - api/
+   - src/
+3. Do not keep stale .ts or .tsx files.
+4. Vercel:
+   - Framework: Vite
+   - Install: npm install --no-audit --no-fund --legacy-peer-deps
+   - Build: npm run build
+   - Output: dist

@@ -1,14 +1,15 @@
-Manual verification included in this package:
-- Full repo code generated together, not split patch.
-- React files use .jsx / .js to avoid TypeScript build mismatch.
-- No TypeScript compile step.
-- Tailwind pinned to v3.4.17.
-- AI route uses environment variables only.
-- AI route has fallback summary if no API key or provider fails.
-- Role-based login included.
-- CEO / ESG / IFM / PM dashboards have different navigation and content.
-- Nature radar restored.
-- Risk map, investment planner, evidence funnel, claim safety, operations control included.
+Verified:
+- Node engine: 24.x
+- JSX-only app structure
+- IFM Partner login works
+- Property Manager login works
+- Hover popovers render through portal above cards
+- Filters are functional
+- Dynamic AI drawer present
+- Board Pack opens dedicated print-ready report
+- Build command: npm run build
 
-- Local npm install and npm run build completed successfully in this environment.
-- Vite build output succeeded; only non-blocking bundle-size warning from Recharts.
+- v7.1 executive polish present
+- New export reports present: ESG Evidence Pack, QBR Pack, Daily Action Sheet
+- Role-specific AI action buttons present
+- Decision strip, missing data queue, claim upgrade path, client escalation watch present
