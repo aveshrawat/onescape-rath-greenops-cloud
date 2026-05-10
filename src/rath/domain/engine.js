@@ -1,4 +1,4 @@
-export const METHOD_VERSION = "RATH-GII-v0.7.3";
+export const METHOD_VERSION = "RATH-GII-v0.7.4";
 export const E1_PATHWAY_TEXT = "E1 expert-review pathway initiated through the 30-day pilot engagement.";
 
 export const ROLES = {
@@ -657,23 +657,32 @@ export function getInvestmentScenarios(periodKey = "30d") {
   ];
 }
 
-export function getPortfolioIntelligence() {
+export function getPortfolioIntelligence(periodKey = "30d") {
+  const selectedProfile = periodProfiles[periodKey] || periodProfiles["30d"];
+  const selectedScores = selectedProfile.scores;
+  const portfolioPeriodOffsets = {
+    "30d": { value: 0, nature: 0 },
+    quarter: { value: 2, nature: 1 },
+    "6m": { value: 4, nature: 3 },
+    "9m": { value: 5, nature: 4 },
+    "12m": { value: 7, nature: 6 },
+  };
+  const offset = portfolioPeriodOffsets[periodKey] || portfolioPeriodOffsets["30d"];
+  const score = (base, delta) => Math.min(100, base + delta);
   const assets = [
     {
-      rank: 1,
       name: "Vikhroli Business City, Mumbai",
-      greenInfrastructureValueScore: 78,
-      natureReadinessScore: 72,
+      greenInfrastructureValueScore: score(78, offset.value),
+      natureReadinessScore: score(72, offset.nature),
       primaryRisk: "Water-linkage continuity",
       esgReadiness: "Evidence pathway",
       capitalAction: "Standardise meter linkage",
       status: "Verified asset",
     },
     {
-      rank: 2,
       name: "Asia Pacific Asset — Illustrative Rollout",
-      greenInfrastructureValueScore: 76,
-      natureReadinessScore: 70,
+      greenInfrastructureValueScore: score(76, offset.value),
+      natureReadinessScore: score(70, offset.nature),
       primaryRisk: "Portfolio baseline required",
       esgReadiness: "Illustrative",
       capitalAction: "Confirm baseline scope",
@@ -681,54 +690,52 @@ export function getPortfolioIntelligence() {
       note: "Illustrative — subject to portfolio confirmation.",
     },
     {
-      rank: 3,
       name: "Global Technology Park, Bengaluru",
-      greenInfrastructureValueScore: 74,
-      natureReadinessScore: 67,
+      greenInfrastructureValueScore: selectedScores.greenInfrastructureValueScore,
+      natureReadinessScore: selectedScores.natureReadinessScore,
       primaryRisk: "Water resilience",
       esgReadiness: "E0 active pilot",
       capitalAction: "Optimise resilience programme",
       status: "Active Pilot",
     },
     {
-      rank: 4,
       name: "Global Infocity Park, Chennai",
-      greenInfrastructureValueScore: 71,
-      natureReadinessScore: 64,
+      greenInfrastructureValueScore: score(71, offset.value),
+      natureReadinessScore: score(64, offset.nature),
       primaryRisk: "Heat-exposure proxy",
       esgReadiness: "Baseline required",
       capitalAction: "Establish site baseline",
       status: "Verified asset",
     },
     {
-      rank: 5,
       name: "Global Business City, Pune",
-      greenInfrastructureValueScore: 69,
-      natureReadinessScore: 61,
+      greenInfrastructureValueScore: score(69, offset.value),
+      natureReadinessScore: score(61, offset.nature),
       primaryRisk: "Species-mix resilience",
       esgReadiness: "Baseline required",
       capitalAction: "Prioritise adaptive planting",
       status: "Verified asset",
     },
-  ];
+  ]
+    .sort((a, b) => b.greenInfrastructureValueScore - a.greenInfrastructureValueScore)
+    .map((asset, index) => ({ ...asset, rank: index + 1 }));
   const aggregateValue = Math.round(assets.reduce((sum, asset) => sum + asset.greenInfrastructureValueScore, 0) / assets.length);
   const aggregateNature = Math.round(assets.reduce((sum, asset) => sum + asset.natureReadinessScore, 0) / assets.length);
   return {
+    periodLabel: selectedProfile.label,
     aggregateValue,
     aggregateNature,
     activePilotCount: assets.filter((asset) => asset.status === "Active Pilot").length,
     rolloutCount: assets.length,
     assets,
-    chart: [...assets]
-      .sort((a, b) => b.greenInfrastructureValueScore - a.greenInfrastructureValueScore)
-      .map((asset) => ({
-        name: asset.name
-          .replace(", Bengaluru", "")
-          .replace(", Chennai", "")
-          .replace(", Mumbai", "")
-          .replace(", Pune", ""),
-        value: asset.greenInfrastructureValueScore,
-      })),
+    chart: assets.map((asset) => ({
+      name: asset.name
+        .replace(", Bengaluru", "")
+        .replace(", Chennai", "")
+        .replace(", Mumbai", "")
+        .replace(", Pune", ""),
+      value: asset.greenInfrastructureValueScore,
+    })),
     caution: "Non-pilot scores are illustrative rollout values for portfolio planning until asset baselines are completed.",
   };
 }
@@ -1168,8 +1175,8 @@ export function getBoardDecisionMemo(periodKey = "30d", filters = {}) {
     expectedOutcome: `Move the asset from ${s.greenInfrastructureValueScore}/100 toward 82/100 by addressing water resilience, heat comfort, and tenant-facing evidence.`,
     riskOfInaction: "Continued leakage in water-sensitive zones, weaker tenant differentiation, and delayed evidence maturity.",
     decisionRequired: "Approve pilot validation, capital envelope, and expert-review pathway.",
-    pilotOutcome90Day: "At the 90-day scale review, management should have a repeatable site baseline, zone-level risk register, water-to-health proof, claim-safe ESG evidence pack, and a portfolio-comparable capital prioritisation view.",
-    next90Days: [
+    pilotOutcome60Day: "At the 60-day scale review, management should have a repeatable site baseline, zone-level risk register, water-to-health proof, claim-safe ESG evidence pack, and a portfolio-comparable capital prioritisation view.",
+    next60Days: [
       "Close water-linkage and photo-evidence gaps.",
       "Execute P1 adaptive-planting and shade-layer actions.",
       "Prepare an E1 expert-review-ready pack and tenant-facing green snapshot.",
