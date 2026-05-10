@@ -921,8 +921,8 @@ function ZoneVisitQueue({ periodKey, filters }) {
 }
 
 
-function PortfolioIntelligenceView() {
-  const portfolio = getPortfolioIntelligence();
+function PortfolioIntelligenceView({ periodKey }) {
+  const portfolio = getPortfolioIntelligence(periodKey);
 
   return (
     <div>
@@ -930,7 +930,7 @@ function PortfolioIntelligenceView() {
         eyebrow="Portfolio Intelligence"
         title="A portfolio-scale green asset intelligence layer, not a single-site novelty."
         description="Rollout simulation: the pilot methodology converts living infrastructure into a comparable portfolio decision lens across verified Mapletree assets."
-        action={<Badge tone="dark">Portfolio view</Badge>}
+        action={<Badge tone="dark">{portfolio.periodLabel}</Badge>}
       />
 
       <Panel className="mb-5 overflow-hidden">
@@ -1503,7 +1503,7 @@ function BoardPackView({ data, periodKey, filters }) {
         <Panel className="p-4 sm:p-5">
           <p className="text-base font-semibold text-slate-950">What management should do next</p>
           <div className="mt-4 space-y-3">
-            {memo.next90Days.map((item, index) => (
+            {memo.next60Days.map((item, index) => (
               <div key={item} className="flex gap-3 rounded-2xl bg-slate-50 p-4">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-950 text-xs font-bold text-white">{index + 1}</div>
                 <p className="text-sm leading-6 text-slate-700">{item}</p>
@@ -1555,8 +1555,8 @@ function BoardPackView({ data, periodKey, filters }) {
       </div>
 
       <Panel className="mt-5 p-4 sm:p-5">
-        <p className="text-base font-semibold text-slate-950">90-day scale outcome</p>
-        <p className="mt-2 text-sm leading-6 text-slate-700">{memo.pilotOutcome90Day}</p>
+        <p className="text-base font-semibold text-slate-950">60-day scale outcome</p>
+        <p className="mt-2 text-sm leading-6 text-slate-700">{memo.pilotOutcome60Day}</p>
       </Panel>
     </div>
   );
@@ -2141,7 +2141,7 @@ export default function RathGreenOpsCloud() {
   function renderView() {
     switch (activeView) {
       case "portfolio":
-        return <PortfolioIntelligenceView />;
+        return <PortfolioIntelligenceView periodKey={periodKey} />;
       case "value":
         return <ValueOverview data={data} role={role} periodKey={periodKey} filters={filters} />;
       case "risk":
