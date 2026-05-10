@@ -1,4 +1,5 @@
-export const METHOD_VERSION = "RATH-GII-v0.8.0";
+export const METHOD_VERSION = "RATH-GII-v0.7.3";
+export const E1_PATHWAY_TEXT = "E1 expert-review pathway initiated through the 30-day pilot engagement.";
 
 export const ROLES = {
   CEO: "CEO",
@@ -36,7 +37,7 @@ export const demoCredentials = [
     email: "ifm@partner.com",
     pin: "333333",
     role: ROLES.IFM,
-    displayName: "IFM Partner",
+    displayName: "Property Operations — IFM",
     workspace: "Global Technology Park, Bengaluru",
     defaultView: "control",
   },
@@ -44,7 +45,7 @@ export const demoCredentials = [
     email: "pm@client.com",
     pin: "444444",
     role: ROLES.PM,
-    displayName: "Property Manager",
+    displayName: "Property Operations — Site",
     workspace: "Global Technology Park, Bengaluru",
     defaultView: "control",
   },
@@ -61,7 +62,7 @@ export function authenticateDemoUser(email, pin) {
 export const dashboardCopy = {
   [ROLES.CEO]: {
     productName: "Green Infrastructure Value Dashboard",
-    purpose: "Executive decision view.",
+    purpose: "Portfolio decision view.",
     hero: "Asset value, tenant impact, risk, carbon, water, and capital decisions from already-owned green infrastructure.",
   },
   [ROLES.ESG]: {
@@ -83,7 +84,7 @@ export const dashboardCopy = {
 
 export const roleViews = {
   [ROLES.CEO]: [
-    { key: "portfolio", label: "Portfolio Intelligence", description: "Portfolio-level comparison" },
+    { key: "portfolio", label: "Portfolio Intelligence", description: "Portfolio rollout lens" },
     { key: "value", label: "Value Overview", description: "Board summary" },
     { key: "risk", label: "Risk Map", description: "High-risk green zones" },
     { key: "natureWater", label: "Nature + Water", description: "Nature radar and water-health" },
@@ -379,16 +380,18 @@ export const baseData = {
     ],
   },
   zones: [
+    { id: "zone_lobby", name: "Lobby Atrium", healthRisk: 18, waterStressRisk: 14, heatExposureRisk: 10, natureWeaknessRisk: 34, dataGapRisk: 24, riskScore: 36, status: "Stable", tenantVisibility: "High", recommendedAction: "Maintain light-governance cadence and complete closure-proof continuity." },
+    { id: "zone_rooftop", name: "Rooftop Terrace", healthRisk: 28, waterStressRisk: 55, heatExposureRisk: 72, natureWeaknessRisk: 40, dataGapRisk: 26, riskScore: 71, status: "Watch", tenantVisibility: "High", recommendedAction: "Improve adaptive planting and irrigation zoning before peak-heat months." },
     { id: "zone_podium", name: "Podium Landscape", healthRisk: 35, waterStressRisk: 62, heatExposureRisk: 55, natureWeaknessRisk: 42, dataGapRisk: 28, riskScore: 79, status: "Intervention", tenantVisibility: "High", recommendedAction: "Replace high-water lawn pockets with adaptive planting and irrigation zoning." },
-    { id: "zone_arrival", name: "Arrival Plaza", healthRisk: 24, waterStressRisk: 32, heatExposureRisk: 85, natureWeaknessRisk: 36, dataGapRisk: 18, riskScore: 58, status: "Watch", tenantVisibility: "High", recommendedAction: "Add shade and soil-moisture governance at arrival corridor." },
-    { id: "zone_spine", name: "Peripheral Green Belt", healthRisk: 12, waterStressRisk: 24, heatExposureRisk: 85, natureWeaknessRisk: 28, dataGapRisk: 12, riskScore: 42, status: "Stable", tenantVisibility: "High", recommendedAction: "Maintain current governance cadence and upgrade tenant-facing story cards." },
-    { id: "zone_bio", name: "Rooftop Terrace", healthRisk: 10, waterStressRisk: 38, heatExposureRisk: 25, natureWeaknessRisk: 18, dataGapRisk: 34, riskScore: 32, status: "Stable", tenantVisibility: "Medium", recommendedAction: "Add water-linkage evidence and convert into a green-trail point." },
+    { id: "zone_arrival", name: "Arrival Plaza", healthRisk: 24, waterStressRisk: 32, heatExposureRisk: 85, natureWeaknessRisk: 36, dataGapRisk: 18, riskScore: 58, status: "Watch", tenantVisibility: "High", recommendedAction: "Add shade and soil-moisture governance at arrival frontage." },
+    { id: "zone_peripheral", name: "Peripheral Green Belt", healthRisk: 10, waterStressRisk: 38, heatExposureRisk: 25, natureWeaknessRisk: 18, dataGapRisk: 34, riskScore: 32, status: "Stable", tenantVisibility: "Medium", recommendedAction: "Add water-linkage evidence and convert into a green-trail point." },
   ],
   water: [
-    { zoneId: "zone_spine", zone: "Peripheral Belt", index: 88, health: 89, waterIntensity: 29, source: "STP", status: "Efficient" },
-    { zoneId: "zone_podium", zone: "Podium", index: 72, health: 65, waterIntensity: 28, source: "STP", status: "Watch" },
-    { zoneId: "zone_indoor", zone: "Lobby Atrium", index: 82, health: 72, waterIntensity: 5, source: "HVAC", status: "Efficient" },
+    { zoneId: "zone_lobby", zone: "Lobby Atrium", index: 82, health: 72, waterIntensity: 5, source: "Manual", status: "Efficient" },
+    { zoneId: "zone_rooftop", zone: "Rooftop Terrace", index: 75, health: 71, waterIntensity: 35, source: "STP", status: "Watch" },
+    { zoneId: "zone_podium", zone: "Podium Landscape", index: 72, health: 65, waterIntensity: 28, source: "STP", status: "Watch" },
     { zoneId: "zone_arrival", zone: "Arrival Plaza", index: 82, health: 79, waterIntensity: 32, source: "STP", status: "Efficient" },
+    { zoneId: "zone_peripheral", zone: "Peripheral Green Belt", index: 88, health: 89, waterIntensity: 29, source: "STP", status: "Efficient" },
   ],
   evidenceFunnel: [
     { stage: "Total green zones", count: 5, percent: 100 },
@@ -402,11 +405,11 @@ export const baseData = {
   ],
   dataQuality: [
     { area: "Inventory", score: 100, status: "Complete", gap: "None" },
-    { area: "Species verification", score: 80, status: "Usable", gap: "Arrival Plaza species confirmation" },
+    { area: "Species verification", score: 80, status: "Usable", gap: "Arrival plaza species confirmation" },
     { area: "Health scans", score: 100, status: "Complete", gap: "None" },
-    { area: "Photo evidence", score: 80, status: "Usable", gap: "Lobby Atrium photo proof" },
-    { area: "Water linkage", score: 80, status: "Usable", gap: "Rooftop terrace hose/meter link" },
-    { area: "Maintenance history", score: 70, status: "Weak", gap: "Podium Landscape maintenance history" },
+    { area: "Photo evidence", score: 80, status: "Usable", gap: "Lobby atrium closure photo set" },
+    { area: "Water linkage", score: 80, status: "Usable", gap: "Peripheral green belt hose/meter link" },
+    { area: "Maintenance history", score: 70, status: "Weak", gap: "Podium landscape maintenance history" },
   ],
   leap: [
     { stage: "Locate", score: 100, output: "Mapped site zones and green-asset locations." },
@@ -443,7 +446,7 @@ export const baseData = {
     },
     {
       id: "INV-002",
-      zoneId: "zone_spine",
+      zoneId: "zone_rooftop",
       action: "Add shade-tree layer near pedestrian spine",
       category: "Tenant experience",
       costLow: 350000,
@@ -457,7 +460,7 @@ export const baseData = {
     },
     {
       id: "INV-003",
-      zoneId: "zone_bio",
+      zoneId: "zone_peripheral",
       action: "Build tenant-facing biodiversity pocket",
       category: "Nature narrative",
       costLow: 120000,
@@ -516,7 +519,7 @@ export const baseData = {
   tickets: [
     { id: "TCK-1001", zone: "Lobby Atrium", issue: "Low light stress", priority: "P2", status: "Open", sla: "Within SLA", owner: "Supervisor", proof: "Pending" },
     { id: "TCK-1002", zone: "Podium Landscape", issue: "Dry patch", priority: "P2", status: "Closed", sla: "Met", owner: "Gardener", proof: "Photo uploaded" },
-    { id: "TCK-1003", zone: "Peripheral Green Belt", issue: "Pruning due", priority: "P3", status: "Open", sla: "Within SLA", owner: "Vendor", proof: "Pending" },
+    { id: "TCK-1003", zone: "Rooftop Terrace", issue: "Pruning due", priority: "P3", status: "Open", sla: "Within SLA", owner: "Vendor", proof: "Pending" },
     { id: "TCK-1004", zone: "Arrival Plaza", issue: "Irrigation leak", priority: "P2", status: "Closed", sla: "Breached", owner: "Vendor", proof: "Photo uploaded" },
   ],
   recurringIssues: [
@@ -528,7 +531,7 @@ export const baseData = {
   vendorPerformance: [
     { vendor: "Landscape Ops", sla: 86, closure: 92, reopen: 8 },
     { vendor: "Irrigation Team", sla: 74, closure: 78, reopen: 14 },
-    { vendor: "Indoor Plant Crew", sla: 88, closure: 90, reopen: 6 },
+    { vendor: "Lobby Atrium Plant Crew", sla: 88, closure: 90, reopen: 6 },
   ],
 };
 
@@ -625,7 +628,7 @@ export function getInvestmentScenarios(periodKey = "30d") {
   const data = getSnapshot(periodKey);
   return [
     {
-      key: "preserve",
+      key: "maintain",
       name: "Maintain",
       capex: "₹0",
       outcome: "Current state maintained",
@@ -634,7 +637,7 @@ export function getInvestmentScenarios(periodKey = "30d") {
       tone: "slate",
     },
     {
-      key: "optimize",
+      key: "optimise",
       name: "Optimise",
       capex: data.portfolioOptions[1].capex,
       outcome: "Water stress falls; evidence quality improves; asset moves toward 82/100",
@@ -654,62 +657,82 @@ export function getInvestmentScenarios(periodKey = "30d") {
   ];
 }
 
-
 export function getPortfolioIntelligence() {
   const assets = [
     {
-      name: "Global Technology Park, Bengaluru",
-      status: "Active Pilot",
-      greenInfrastructureValue: 78,
-      natureReadiness: 72,
-      primaryRisk: "Water resilience",
-      esgReadiness: "Pilot evidence active",
-      recommendedCapitalAction: "Complete 30-day validation and baseline rollout logic",
-    },
-    {
-      name: "Global Infocity Park, Chennai",
-      greenInfrastructureValue: 74,
-      natureReadiness: 69,
-      primaryRisk: "Heat exposure",
-      esgReadiness: "Baseline required",
-      recommendedCapitalAction: "Run baseline and prioritise cooling landscape zones",
-    },
-    {
+      rank: 1,
       name: "Vikhroli Business City, Mumbai",
-      greenInfrastructureValue: 71,
-      natureReadiness: 66,
-      primaryRisk: "Water linkage",
-      esgReadiness: "Evidence gap",
-      recommendedCapitalAction: "Link water evidence before broader disclosure use",
+      greenInfrastructureValueScore: 78,
+      natureReadinessScore: 72,
+      primaryRisk: "Water-linkage continuity",
+      esgReadiness: "Evidence pathway",
+      capitalAction: "Standardise meter linkage",
+      status: "Verified asset",
     },
     {
-      name: "Global Business City, Pune",
-      greenInfrastructureValue: 69,
-      natureReadiness: 64,
-      primaryRisk: "Nature diversity",
-      esgReadiness: "Baseline required",
-      recommendedCapitalAction: "Prioritise native/adaptive mix and proof capture",
-    },
-    {
+      rank: 2,
       name: "Asia Pacific Asset — Illustrative Rollout",
-      illustrative: true,
+      greenInfrastructureValueScore: 76,
+      natureReadinessScore: 70,
+      primaryRisk: "Portfolio baseline required",
+      esgReadiness: "Illustrative",
+      capitalAction: "Confirm baseline scope",
+      status: "Illustrative",
       note: "Illustrative — subject to portfolio confirmation.",
-      greenInfrastructureValue: 67,
-      natureReadiness: 62,
-      primaryRisk: "Portfolio baseline",
-      esgReadiness: "Illustrative only",
-      recommendedCapitalAction: "Confirm asset and establish first-pass baseline",
+    },
+    {
+      rank: 3,
+      name: "Global Technology Park, Bengaluru",
+      greenInfrastructureValueScore: 74,
+      natureReadinessScore: 67,
+      primaryRisk: "Water resilience",
+      esgReadiness: "E0 active pilot",
+      capitalAction: "Optimise resilience programme",
+      status: "Active Pilot",
+    },
+    {
+      rank: 4,
+      name: "Global Infocity Park, Chennai",
+      greenInfrastructureValueScore: 71,
+      natureReadinessScore: 64,
+      primaryRisk: "Heat-exposure proxy",
+      esgReadiness: "Baseline required",
+      capitalAction: "Establish site baseline",
+      status: "Verified asset",
+    },
+    {
+      rank: 5,
+      name: "Global Business City, Pune",
+      greenInfrastructureValueScore: 69,
+      natureReadinessScore: 61,
+      primaryRisk: "Species-mix resilience",
+      esgReadiness: "Baseline required",
+      capitalAction: "Prioritise adaptive planting",
+      status: "Verified asset",
     },
   ];
-
-  const avg = (key) => Math.round(assets.reduce((sum, asset) => sum + asset[key], 0) / assets.length);
+  const aggregateValue = Math.round(assets.reduce((sum, asset) => sum + asset.greenInfrastructureValueScore, 0) / assets.length);
+  const aggregateNature = Math.round(assets.reduce((sum, asset) => sum + asset.natureReadinessScore, 0) / assets.length);
   return {
-    assets,
-    aggregateGreenInfrastructureValue: avg("greenInfrastructureValue"),
-    aggregateNatureReadiness: avg("natureReadiness"),
+    aggregateValue,
+    aggregateNature,
     activePilotCount: assets.filter((asset) => asset.status === "Active Pilot").length,
+    rolloutCount: assets.length,
+    assets,
+    chart: [...assets]
+      .sort((a, b) => b.greenInfrastructureValueScore - a.greenInfrastructureValueScore)
+      .map((asset) => ({
+        name: asset.name
+          .replace(", Bengaluru", "")
+          .replace(", Chennai", "")
+          .replace(", Mumbai", "")
+          .replace(", Pune", ""),
+        value: asset.greenInfrastructureValueScore,
+      })),
+    caution: "Non-pilot scores are illustrative rollout values for portfolio planning until asset baselines are completed.",
   };
 }
+
 
 const DEFAULT_FILTERS = {
   zoneId: "all",
@@ -721,6 +744,38 @@ const DEFAULT_FILTERS = {
 };
 
 const zoneEvidenceProfiles = {
+  zone_lobby: {
+    reportabilityReadiness: 66,
+    claimRiskExposure: "Moderate",
+    greenInfrastructureValueScore: 71,
+    natureReadinessScore: 62,
+    tenantGreenEngagementReadiness: 78,
+    dataQualityScore: 80,
+    greenAssetMaturityLevel: 4,
+    evidenceFlags: {
+      mapped: true,
+      speciesVerified: true,
+      healthScanned: true,
+      waterLinked: true,
+      photoEvidenced: false,
+      e1Ready: false,
+      executiveReportable: true,
+    },
+    dataQuality: [
+      { area: "Inventory", score: 100, status: "Complete", gap: "None" },
+      { area: "Species verification", score: 90, status: "Usable", gap: "None" },
+      { area: "Health scans", score: 95, status: "Usable", gap: "One low-light follow-up pending" },
+      { area: "Photo evidence", score: 60, status: "Weak", gap: "Lobby atrium closure photo set incomplete" },
+      { area: "Water linkage", score: 88, status: "Usable", gap: "None" },
+      { area: "Maintenance history", score: 75, status: "Usable", gap: "One event missing supervisor confirmation" },
+    ],
+    leap: [
+      { stage: "Locate", score: 100, output: "Tenant-facing indoor asset cluster mapped." },
+      { stage: "Evaluate", score: 72, output: "Health and tenant-facing value visible; photo continuity incomplete." },
+      { stage: "Assess", score: 64, output: "Low operational risk; evidence continuity suppresses reportability." },
+      { stage: "Prepare", score: 58, output: "Internal tenant narrative possible; photo proof remains a dependency." },
+    ],
+  },
   zone_podium: {
     reportabilityReadiness: 54,
     claimRiskExposure: "Elevated",
@@ -772,7 +827,7 @@ const zoneEvidenceProfiles = {
     },
     dataQuality: [
       { area: "Inventory", score: 100, status: "Complete", gap: "None" },
-      { area: "Species verification", score: 55, status: "Weak", gap: "Arrival Plaza species confirmation pending" },
+      { area: "Species verification", score: 55, status: "Weak", gap: "Arrival plaza species confirmation pending" },
       { area: "Health scans", score: 100, status: "Complete", gap: "None" },
       { area: "Photo evidence", score: 85, status: "Usable", gap: "One close-out image pending" },
       { area: "Water linkage", score: 85, status: "Usable", gap: "None" },
@@ -785,7 +840,7 @@ const zoneEvidenceProfiles = {
       { stage: "Prepare", score: 58, output: "Internal tenant narrative possible; species review pending." },
     ],
   },
-  zone_spine: {
+  zone_rooftop: {
     reportabilityReadiness: 78,
     claimRiskExposure: "Low",
     greenInfrastructureValueScore: 83,
@@ -817,7 +872,7 @@ const zoneEvidenceProfiles = {
       { stage: "Prepare", score: 78, output: "Near E1-ready with limited cleanup." },
     ],
   },
-  zone_bio: {
+  zone_peripheral: {
     reportabilityReadiness: 68,
     claimRiskExposure: "Moderate",
     greenInfrastructureValueScore: 74,
@@ -839,11 +894,11 @@ const zoneEvidenceProfiles = {
       { area: "Species verification", score: 90, status: "Usable", gap: "None" },
       { area: "Health scans", score: 90, status: "Usable", gap: "None" },
       { area: "Photo evidence", score: 60, status: "Weak", gap: "Seasonal proof set incomplete" },
-      { area: "Water linkage", score: 50, status: "Weak", gap: "Rooftop terrace hose / meter link missing" },
+      { area: "Water linkage", score: 50, status: "Weak", gap: "Peripheral green belt hose / meter link missing" },
       { area: "Maintenance history", score: 76, status: "Usable", gap: "Minor continuity gap" },
     ],
     leap: [
-      { stage: "Locate", score: 100, output: "Green pocket mapped and classified." },
+      { stage: "Locate", score: 100, output: "Peripheral green belt mapped and classified." },
       { stage: "Evaluate", score: 80, output: "Species and habitat potential scored." },
       { stage: "Assess", score: 74, output: "Strong opportunity; evidence gaps suppress confidence." },
       { stage: "Prepare", score: 58, output: "Good internal story; water/photo proof blocks stronger use." },
@@ -852,11 +907,12 @@ const zoneEvidenceProfiles = {
 };
 
 const missingDataQueueAll = [
-  { zoneId: "zone_bio", gap: "Rooftop Terrace water linkage", impact: "Blocks stronger water claim", owner: "Site team", requiredFor: "E1 water evidence" },
-  { zoneId: "zone_bio", gap: "Seasonal rooftop photo set", impact: "Weakens nature continuity", owner: "IFM", requiredFor: "Nature evidence continuity" },
-  { zoneId: "zone_arrival", gap: "Arrival Plaza species confirmation", impact: "Limits nature-score uplift", owner: "Horticulture expert", requiredFor: "Species validation" },
-  { zoneId: "zone_podium", gap: "Podium Landscape maintenance history", impact: "Weakens repeat-issue audit trail", owner: "Supervisor", requiredFor: "Operational proof" },
-  { zoneId: "zone_podium", gap: "Podium irrigation linkage", impact: "Blocks stronger water claim", owner: "Site team", requiredFor: "Meter-level evidence" },
+  { zoneId: "zone_lobby", gap: "Lobby atrium closure photo set", impact: "Weakens closure evidence", owner: "Property Operations", requiredFor: "Evidence continuity" },
+  { zoneId: "zone_peripheral", gap: "Peripheral green belt water linkage", impact: "Blocks stronger water claim", owner: "Site team", requiredFor: "E1 water evidence" },
+  { zoneId: "zone_peripheral", gap: "Seasonal green-belt photo set", impact: "Weakens nature continuity", owner: "IFM", requiredFor: "Nature evidence continuity" },
+  { zoneId: "zone_arrival", gap: "Arrival plaza species confirmation", impact: "Limits nature-score uplift", owner: "Horticulture expert", requiredFor: "Species validation" },
+  { zoneId: "zone_podium", gap: "Podium landscape maintenance history", impact: "Weakens repeat-issue audit trail", owner: "Supervisor", requiredFor: "Operational proof" },
+  { zoneId: "zone_podium", gap: "Podium landscape irrigation linkage", impact: "Blocks stronger water claim", owner: "Site team", requiredFor: "Meter-level evidence" },
 ];
 
 function normalizeFilters(filters = {}) {
@@ -962,11 +1018,11 @@ export function getFilteredSnapshot(periodKey = "30d", filters = {}) {
     return zoneMatch && interventionMatch;
   });
   const ticketZoneMap = {
+    "Lobby Atrium": "zone_lobby",
     "Podium Landscape": "zone_podium",
     "Arrival Plaza": "zone_arrival",
-    "Peripheral Green Belt": "zone_spine",
-    "Rooftop Terrace": "zone_bio",
-    "Lobby Atrium": "zone_indoor",
+    "Rooftop Terrace": "zone_rooftop",
+    "Peripheral Green Belt": "zone_peripheral",
   };
   const tickets = raw.tickets.filter((ticket) => {
     const ticketZoneId = ticketZoneMap[ticket.zone];
@@ -1094,6 +1150,7 @@ export function getBoardNarrative(periodKey = "30d", filters = {}) {
   const data = getFilteredSnapshot(periodKey, filters);
   const s = data.summary;
   return [
+    `Global Technology Park, Bengaluru is the first site in a proposed Mapletree India green asset intelligence rollout.`,
     `The asset currently sits at Level ${s.greenAssetMaturityLevel}/6: measurable green infrastructure intelligence exists, but external evidence maturity is not yet reached.`,
     `Green Infrastructure Value is ${s.greenInfrastructureValueScore}/100 with ${s.highRiskGreenZones} intervention zone${s.highRiskGreenZones === 1 ? "" : "s"} and ${s.recommendedInvestmentActions} recommended capital actions.`,
     `Water-to-Health is ${s.waterToHealthScore}/100, while water resilience remains the clearest quality gap and therefore the highest-value improvement lever.`,
@@ -1110,12 +1167,12 @@ export function getBoardDecisionMemo(periodKey = "30d", filters = {}) {
     capitalAsk: "₹6.5L–₹10.6L",
     expectedOutcome: `Move the asset from ${s.greenInfrastructureValueScore}/100 toward 82/100 by addressing water resilience, heat comfort, and tenant-facing evidence.`,
     riskOfInaction: "Continued leakage in water-sensitive zones, weaker tenant differentiation, and delayed evidence maturity.",
-    decisionRequired: "Approve pilot validation, capex envelope, and E1 expert-review pathway.",
-    pilotOutcome: "At pilot completion, management will have a measurable baseline for green-asset condition, nature-readiness, water-to-health, carbon-supporting estimates, evidence gaps, and a board-ready rollout recommendation.",
+    decisionRequired: "Approve pilot validation, capital envelope, and expert-review pathway.",
+    pilotOutcome90Day: "At the 90-day scale review, management should have a repeatable site baseline, zone-level risk register, water-to-health proof, claim-safe ESG evidence pack, and a portfolio-comparable capital prioritisation view.",
     next90Days: [
       "Close water-linkage and photo-evidence gaps.",
       "Execute P1 adaptive-planting and shade-layer actions.",
-      "Prepare E1 expert-review pack and tenant-facing green snapshot.",
+      "Prepare an E1 expert-review-ready pack and tenant-facing green snapshot.",
     ],
   };
 }
@@ -1242,8 +1299,8 @@ export function getPMExecutive(periodKey = "30d", filters = {}) {
     ],
     dailyActionQueue: [
       { zoneId: "zone_podium", priority: "P1", task: "Inspect Podium Landscape dry patch", reason: "Water-stress watch zone", owner: "Supervisor" },
-      { zoneId: "zone_arrival", priority: "P1", task: "Follow up on Arrival Plaza irrigation leak closure", reason: "SLA breach", owner: "Vendor" },
-      { zoneId: "zone_spine", priority: "P2", task: "Rescan Peripheral Green Belt pruning line", reason: "Closure proof pending", owner: "Gardener" },
+      { zoneId: "zone_arrival", priority: "P1", task: "Follow up on Arrival Court irrigation leak closure", reason: "SLA breach", owner: "Vendor" },
+      { zoneId: "zone_rooftop", priority: "P2", task: "Rescan Rooftop Terrace pruning line", reason: "Closure proof pending", owner: "Gardener" },
     ].filter((item) => data.activeFilters.zoneId === "all" || item.zoneId === data.activeFilters.zoneId),
     zoneVisitQueue: [
       { zoneId: "zone_podium", zone: "Podium Landscape", reason: "High-risk + water-stress", lastProof: "2 days ago" },
