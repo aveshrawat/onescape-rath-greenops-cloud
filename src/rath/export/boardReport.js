@@ -72,8 +72,8 @@ export function openBoardPack(periodKey = "30d", filters = {}) {
     <div class="card dark"><h2>Decision requested</h2><p>${esc(memo.decisionRequired)}</p><h2>Executive recommendation</h2><p>${esc(memo.recommendation)}</p></div>
     <div class="card"><h2>Capital scenarios</h2><table><thead><tr><th>Scenario</th><th>Capital</th><th>Return logic</th><th>Board view</th></tr></thead><tbody>${scenarioRows}</tbody></table></div>
     <div class="card"><h2>Board narrative</h2><ol>${narrative.map((item) => `<li>${esc(item)}</li>`).join("")}</ol></div>
-    <div class="card"><h2>Next 90 days</h2><ul>${memo.next90Days.map((item) => `<li>${esc(item)}</li>`).join("")}</ul></div>
-    <div class="card"><h2>90-day scale outcome</h2><p>${esc(memo.pilotOutcome90Day)}</p></div>
+    <div class="card"><h2>Next 60 days</h2><ul>${memo.next60Days.map((item) => `<li>${esc(item)}</li>`).join("")}</ul></div>
+    <div class="card"><h2>60-day scale outcome</h2><p>${esc(memo.pilotOutcome60Day)}</p></div>
     <div class="card"><h2>Claim boundary</h2><p>RATH does not issue carbon credits. Carbon, nature, and financial outputs remain internal supporting estimates unless upgraded through expert or third-party review.</p><p><strong>${esc(E1_PATHWAY_TEXT)}</strong></p></div>`;
   openHtml(shell("RATH Board Decision Memo", "Confidential · Internal Board Use", `${data.siteName} · ${data.period} · ${data.scopeLabel}`, body), "RATH Board Decision Memo");
 }
