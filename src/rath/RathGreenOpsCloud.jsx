@@ -309,18 +309,24 @@ function HoverPopover({ anchor, metric }) {
 }
 
 function LoginPortal({ onLogin }) {
-  const [email, setEmail] = useState("ceo@client.com");
-  const [pin, setPin] = useState("111111");
+  const [email, setEmail] = useState("");
+  const [pin, setPin] = useState("");
   const [showPin, setShowPin] = useState(false);
   const [error, setError] = useState("");
 
   function login() {
     const user = authenticateDemoUser(email, pin);
     if (!user) {
-      setError("Invalid demo credentials. Select a role card or enter the matching email and PIN.");
+      setError("Invalid credentials. Please check your email and PIN.");
       return;
     }
     onLogin(user);
+  }
+
+  function handleKeyDown(event) {
+    if (event.key === "Enter") {
+      login();
+    }
   }
 
   return (
@@ -350,63 +356,79 @@ function LoginPortal({ onLogin }) {
 
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
               {demoCredentials.map((item) => (
-                <button
-                  key={item.email}
-                  onClick={() => {
-                    setEmail(item.email);
-                    setPin(item.pin);
-                    setError("");
-                  }}
-                  className={cx(
-                    "rounded-3xl border p-4 text-left backdrop-blur transition",
-                    email === item.email ? "border-emerald-300/60 bg-emerald-300/10" : "border-white/10 bg-white/[0.07] hover:bg-white/[0.1]"
-                  )}
+                <div
+                  key={item.role}
+                  className="rounded-3xl border border-white/10 bg-white/[0.06] p-4 text-left backdrop-blur"
                 >
                   <p className="text-sm font-semibold">{item.displayName}</p>
-                  <p className="mt-1 text-xs text-emerald-50/60">{item.email} · PIN {item.pin}</p>
                   <p className="mt-3 text-xs leading-5 text-emerald-50/55">{dashboardCopy[item.role].productName}</p>
-                </button>
+                </div>
               ))}
             </div>
           </div>
 
-          <Panel className="bg-white/[0.08] p-5 text-white shadow-glass ring-1 ring-white/10 sm:p-7">
-            <div className="flex items-center justify-between gap-4">
+          <Panel className="flex bg-white/[0.08] p-5 text-white shadow-glass ring-1 ring-white/10 sm:p-7 lg:min-h-[540px]">
+            <div className="flex w-full flex-col justify-between">
               <div>
-                <p className="text-lg font-semibold">Sign in to workspace</p>
-                <p className="mt-1 text-sm text-emerald-50/60">Role changes screens, KPIs, AI output, and language</p>
-              </div>
-              <Lock className="h-5 w-5 text-emerald-200" />
-            </div>
-
-            <div className="mt-6 space-y-4">
-              <label className="block">
-                <span className="text-xs font-semibold text-emerald-50/70">Email</span>
-                <input value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white outline-none" />
-              </label>
-
-              <label className="block">
-                <span className="text-xs font-semibold text-emerald-50/70">PIN</span>
-                <div className="relative mt-1">
-                  <input type={showPin ? "text" : "password"} value={pin} onChange={(e) => setPin(e.target.value)} className="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 pr-12 text-sm text-white outline-none" />
-                  <button type="button" onClick={() => setShowPin(!showPin)} className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-100/70">
-                    {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-lg font-semibold">Sign in to workspace</p>
+                    <p className="mt-1 text-sm text-emerald-50/60">Role-specific access controls screens, KPIs, AI output, and language</p>
+                  </div>
+                  <Lock className="h-5 w-5 text-emerald-200" />
                 </div>
-              </label>
 
-              {error && <div className="rounded-2xl bg-red-500/10 p-3 text-sm text-red-100 ring-1 ring-red-400/20">{error}</div>}
+                <div className="mt-6 space-y-4">
+                  <label className="block">
+                    <span className="text-xs font-semibold text-emerald-50/70">Email</span>
+                    <input
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setError("");
+                      }}
+                      onKeyDown={handleKeyDown}
+                      placeholder="name@company.com"
+                      autoComplete="username"
+                      className="mt-1 w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white outline-none placeholder:text-emerald-50/35"
+                    />
+                  </label>
 
-              <Button onClick={login} variant="green" className="w-full">
-                Enter role dashboard <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
+                  <label className="block">
+                    <span className="text-xs font-semibold text-emerald-50/70">PIN</span>
+                    <div className="relative mt-1">
+                      <input
+                        type={showPin ? "text" : "password"}
+                        value={pin}
+                        onChange={(e) => {
+                          setPin(e.target.value);
+                          setError("");
+                        }}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Enter PIN"
+                        autoComplete="current-password"
+                        className="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 pr-12 text-sm text-white outline-none placeholder:text-emerald-50/35"
+                      />
+                      <button type="button" onClick={() => setShowPin(!showPin)} className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-100/70">
+                        {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </label>
 
-            <div className="mt-5 rounded-3xl bg-black/20 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200">Verified demo roles</p>
-              <p className="mt-2 text-sm leading-6 text-emerald-50/70">
-                CEO, ESG, IFM, and Property Manager credentials are active in this build.
-              </p>
+                  {error && <div className="rounded-2xl bg-red-500/10 p-3 text-sm text-red-100 ring-1 ring-red-400/20">{error}</div>}
+
+                  <Button onClick={login} variant="green" className="w-full">
+                    Enter role dashboard <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-3xl bg-black/20 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200">Role-based access active</p>
+                <p className="mt-2 text-sm leading-6 text-emerald-50/70">
+                  Each authorised role opens a distinct workspace with its own decision layer, evidence view, and operational controls.
+                </p>
+              </div>
             </div>
           </Panel>
         </div>
