@@ -589,9 +589,9 @@ export function getMetricDeltaMap(periodKey = "30d") {
   };
 }
 
-export function getDecisionStrip(periodKey = "30d") {
-  const data = getSnapshot(periodKey);
-  const memo = getBoardDecisionMemo(periodKey);
+export function getDecisionStrip(periodKey = "30d", filters = {}) {
+  const data = getFilteredSnapshot(periodKey, filters);
+  const memo = getBoardDecisionMemo(periodKey, filters);
   return [
     {
       label: "Current state",
@@ -653,77 +653,222 @@ export function getInvestmentScenarios(periodKey = "30d") {
   ];
 }
 
-export function getESGReadiness(periodKey = "30d") {
-  const data = getSnapshot(periodKey);
-  return {
-    cards: [
-      { label: "Reportability Readiness", value: "62/100", sub: "Internal use; external claims restricted", tone: "blue" },
-      { label: "Evidence Maturity", value: data.evidenceLevel, sub: "Internal model", tone: "amber" },
-      { label: "Data Quality", value: `${data.summary.dataQualityScore}/100`, sub: "Operational completeness", tone: "purple" },
-      { label: "Claim Risk Exposure", value: "Moderate", sub: "Carbon remains high-risk if overclaimed", tone: "amber" },
-      { label: "E1 Upgrade Path", value: "4 gaps", sub: "Must close before expert review", tone: "green" },
+const DEFAULT_FILTERS = {
+  zoneId: "all",
+  priority: "all",
+  interventionOnly: false,
+  evidenceStatus: "all",
+  ticketStatus: "all",
+  slaStatus: "all",
+};
+
+const zoneEvidenceProfiles = {
+  zone_podium: {
+    reportabilityReadiness: 54,
+    claimRiskExposure: "Elevated",
+    greenInfrastructureValueScore: 61,
+    natureReadinessScore: 58,
+    tenantGreenEngagementReadiness: 55,
+    dataQualityScore: 72,
+    greenAssetMaturityLevel: 3,
+    evidenceFlags: {
+      mapped: true,
+      speciesVerified: true,
+      healthScanned: true,
+      waterLinked: false,
+      photoEvidenced: true,
+      e1Ready: false,
+      executiveReportable: false,
+    },
+    dataQuality: [
+      { area: "Inventory", score: 100, status: "Complete", gap: "None" },
+      { area: "Species verification", score: 85, status: "Usable", gap: "One lawn-edge species to confirm" },
+      { area: "Health scans", score: 100, status: "Complete", gap: "None" },
+      { area: "Photo evidence", score: 80, status: "Usable", gap: "Current month proof adequate" },
+      { area: "Water linkage", score: 45, status: "Weak", gap: "Meter / irrigation proof not linked" },
+      { area: "Maintenance history", score: 60, status: "Weak", gap: "Corrective work history incomplete" },
     ],
-    missingDataQueue: [
-      { gap: "Biodiversity pocket water linkage", impact: "Blocks stronger water claim", owner: "Site team", requiredFor: "E1 water evidence" },
-      { gap: "Indoor-cluster photo proof", impact: "Weakens closure evidence", owner: "IFM", requiredFor: "Evidence continuity" },
-      { gap: "Arrival species confirmation", impact: "Limits nature-score uplift", owner: "Horticulture expert", requiredFor: "Species validation" },
-      { gap: "Podium maintenance history", impact: "Weakens repeat-issue audit trail", owner: "Supervisor", requiredFor: "Operational proof" },
+    leap: [
+      { stage: "Locate", score: 100, output: "Zone mapped with asset boundary and irrigation context." },
+      { stage: "Evaluate", score: 66, output: "Water and health signals available; resource linkage weak." },
+      { stage: "Assess", score: 58, output: "Water stress and corrective-work risk remain material." },
+      { stage: "Prepare", score: 44, output: "Internal note possible; stronger claim blocked by water evidence." },
     ],
-    claimUpgradePath: [
-      { topic: "Carbon", current: "Internal estimate", upgrade: "Expert review + documented right-to-report", status: "Blocked for external claim" },
-      { topic: "Nature", current: "Pilot readiness score", upgrade: "Species verification + external review", status: "Internal only" },
-      { topic: "Water", current: "Operational index", upgrade: "Meter-level evidence + baseline sign-off", status: "Conditional" },
-      { topic: "Financial", current: "Estimated leakage", upgrade: "Finance-approved cost model", status: "Conditional" },
+  },
+  zone_arrival: {
+    reportabilityReadiness: 63,
+    claimRiskExposure: "Moderate",
+    greenInfrastructureValueScore: 68,
+    natureReadinessScore: 63,
+    tenantGreenEngagementReadiness: 72,
+    dataQualityScore: 78,
+    greenAssetMaturityLevel: 4,
+    evidenceFlags: {
+      mapped: true,
+      speciesVerified: false,
+      healthScanned: true,
+      waterLinked: true,
+      photoEvidenced: true,
+      e1Ready: false,
+      executiveReportable: true,
+    },
+    dataQuality: [
+      { area: "Inventory", score: 100, status: "Complete", gap: "None" },
+      { area: "Species verification", score: 55, status: "Weak", gap: "Arrival species confirmation pending" },
+      { area: "Health scans", score: 100, status: "Complete", gap: "None" },
+      { area: "Photo evidence", score: 85, status: "Usable", gap: "One close-out image pending" },
+      { area: "Water linkage", score: 85, status: "Usable", gap: "None" },
+      { area: "Maintenance history", score: 75, status: "Usable", gap: "One event missing root-cause tag" },
     ],
-  };
+    leap: [
+      { stage: "Locate", score: 100, output: "Tenant-facing green assets mapped." },
+      { stage: "Evaluate", score: 72, output: "Heat exposure and tenant visibility assessed." },
+      { stage: "Assess", score: 68, output: "High visibility; species validation remains a dependency." },
+      { stage: "Prepare", score: 58, output: "Internal tenant narrative possible; species review pending." },
+    ],
+  },
+  zone_spine: {
+    reportabilityReadiness: 78,
+    claimRiskExposure: "Low",
+    greenInfrastructureValueScore: 83,
+    natureReadinessScore: 78,
+    tenantGreenEngagementReadiness: 85,
+    dataQualityScore: 91,
+    greenAssetMaturityLevel: 5,
+    evidenceFlags: {
+      mapped: true,
+      speciesVerified: true,
+      healthScanned: true,
+      waterLinked: true,
+      photoEvidenced: true,
+      e1Ready: true,
+      executiveReportable: true,
+    },
+    dataQuality: [
+      { area: "Inventory", score: 100, status: "Complete", gap: "None" },
+      { area: "Species verification", score: 95, status: "Complete", gap: "None" },
+      { area: "Health scans", score: 100, status: "Complete", gap: "None" },
+      { area: "Photo evidence", score: 95, status: "Complete", gap: "None" },
+      { area: "Water linkage", score: 90, status: "Usable", gap: "Meter mapping complete" },
+      { area: "Maintenance history", score: 88, status: "Usable", gap: "Minor tagging cleanup" },
+    ],
+    leap: [
+      { stage: "Locate", score: 100, output: "Mapped and asset-tagged." },
+      { stage: "Evaluate", score: 88, output: "Nature, water, health, and tenant signals mature." },
+      { stage: "Assess", score: 84, output: "Low operating risk; strong tenant-facing opportunity." },
+      { stage: "Prepare", score: 78, output: "Near E1-ready with limited cleanup." },
+    ],
+  },
+  zone_bio: {
+    reportabilityReadiness: 68,
+    claimRiskExposure: "Moderate",
+    greenInfrastructureValueScore: 74,
+    natureReadinessScore: 76,
+    tenantGreenEngagementReadiness: 69,
+    dataQualityScore: 76,
+    greenAssetMaturityLevel: 4,
+    evidenceFlags: {
+      mapped: true,
+      speciesVerified: true,
+      healthScanned: true,
+      waterLinked: false,
+      photoEvidenced: false,
+      e1Ready: false,
+      executiveReportable: true,
+    },
+    dataQuality: [
+      { area: "Inventory", score: 100, status: "Complete", gap: "None" },
+      { area: "Species verification", score: 90, status: "Usable", gap: "None" },
+      { area: "Health scans", score: 90, status: "Usable", gap: "None" },
+      { area: "Photo evidence", score: 60, status: "Weak", gap: "Seasonal proof set incomplete" },
+      { area: "Water linkage", score: 50, status: "Weak", gap: "Biodiversity pocket hose / meter link missing" },
+      { area: "Maintenance history", score: 76, status: "Usable", gap: "Minor continuity gap" },
+    ],
+    leap: [
+      { stage: "Locate", score: 100, output: "Green pocket mapped and classified." },
+      { stage: "Evaluate", score: 80, output: "Species and habitat potential scored." },
+      { stage: "Assess", score: 74, output: "Strong opportunity; evidence gaps suppress confidence." },
+      { stage: "Prepare", score: 58, output: "Good internal story; water/photo proof blocks stronger use." },
+    ],
+  },
+};
+
+const missingDataQueueAll = [
+  { zoneId: "zone_bio", gap: "Biodiversity pocket water linkage", impact: "Blocks stronger water claim", owner: "Site team", requiredFor: "E1 water evidence" },
+  { zoneId: "zone_bio", gap: "Seasonal biodiversity photo set", impact: "Weakens nature continuity", owner: "IFM", requiredFor: "Nature evidence continuity" },
+  { zoneId: "zone_arrival", gap: "Arrival species confirmation", impact: "Limits nature-score uplift", owner: "Horticulture expert", requiredFor: "Species validation" },
+  { zoneId: "zone_podium", gap: "Podium maintenance history", impact: "Weakens repeat-issue audit trail", owner: "Supervisor", requiredFor: "Operational proof" },
+  { zoneId: "zone_podium", gap: "Podium irrigation linkage", impact: "Blocks stronger water claim", owner: "Site team", requiredFor: "Meter-level evidence" },
+];
+
+function normalizeFilters(filters = {}) {
+  return { ...DEFAULT_FILTERS, ...filters };
 }
 
-export function getIFMExecutive(periodKey = "30d") {
-  const data = getSnapshot(periodKey);
-  return {
-    cards: [
-      { label: "SLA Integrity", value: `${data.summary.slaCompliance}%`, sub: "Service commitments met", tone: "green" },
-      { label: "Open Risk Exposure", value: `${data.summary.openTickets}`, sub: "Unresolved work items", tone: "blue" },
-      { label: "Repeat-Issue Burden", value: `${data.summary.repeatIssues}`, sub: "Root-cause repeats", tone: "amber" },
-      { label: "Proof-of-Closure Rate", value: "92%", sub: "Photo-backed closures", tone: "green" },
-      { label: "Client Escalation Watch", value: "1 zone", sub: "Tenant-visible risk", tone: "amber" },
-      { label: "QBR Readiness", value: "81/100", sub: "Executive pack completeness", tone: "purple" },
-    ],
-    escalationWatch: [
-      { zone: "Podium Lawn", trigger: "Water stress + repeat corrective work", owner: "Irrigation Team", nextAction: "Close zoning correction with proof" },
-      { zone: "Main Arrival Court", trigger: "Heat exposure in tenant-facing zone", owner: "Landscape Ops", nextAction: "Confirm shade-layer proposal" },
-    ],
-    qbrTalkingPoints: [
-      "One intervention zone remains; root cause is already isolated.",
-      "SLA is in control, but proof quality varies by vendor.",
-      "Focused resilience actions convert reactive work into preventive value.",
-    ],
-  };
+function getZoneProfile(zoneId) {
+  return zoneEvidenceProfiles[zoneId] || null;
 }
 
-export function getPMExecutive(periodKey = "30d") {
-  const data = getSnapshot(periodKey);
-  return {
-    cards: [
-      { label: "Today’s Action Queue", value: `${data.summary.openTickets}`, sub: "Open operational tasks", tone: "blue" },
-      { label: "Zones Needing Visit", value: "2", sub: "Site attention today", tone: "amber" },
-      { label: "Overdue Closures", value: "1", sub: "Needs follow-up", tone: "red" },
-      { label: "Water Stress Exceptions", value: "1", sub: "Irrigation watch", tone: "amber" },
-    ],
-    dailyActionQueue: [
-      { priority: "P1", task: "Inspect Podium Lawn dry patch", reason: "Water-stress watch zone", owner: "Supervisor" },
-      { priority: "P1", task: "Follow up on Arrival Court irrigation leak closure", reason: "SLA breach", owner: "Vendor" },
-      { priority: "P2", task: "Rescan Indoor Cluster low-light plants", reason: "Photo proof pending", owner: "Gardener" },
-    ],
-    zoneVisitQueue: [
-      { zone: "Podium Lawn", reason: "High-risk + water-stress", lastProof: "2 days ago" },
-      { zone: "Arrival Court", reason: "Tenant-facing + SLA breach", lastProof: "Pending closure" },
-    ],
-  };
+function buildEvidenceFunnelFromZones(zones) {
+  const total = zones.length;
+  const countByFlag = (flag) => zones.filter((zone) => getZoneProfile(zone.id)?.evidenceFlags?.[flag]).length;
+  const pct = (count) => total ? Math.round((count / total) * 100) : 0;
+  return [
+    { stage: "Total green zones", count: total, percent: total ? 100 : 0 },
+    { stage: "Mapped zones", count: countByFlag("mapped"), percent: pct(countByFlag("mapped")) },
+    { stage: "Species-verified zones", count: countByFlag("speciesVerified"), percent: pct(countByFlag("speciesVerified")) },
+    { stage: "Health-scanned zones", count: countByFlag("healthScanned"), percent: pct(countByFlag("healthScanned")) },
+    { stage: "Water-linked zones", count: countByFlag("waterLinked"), percent: pct(countByFlag("waterLinked")) },
+    { stage: "Photo-evidenced zones", count: countByFlag("photoEvidenced"), percent: pct(countByFlag("photoEvidenced")) },
+    { stage: "E1-ready zones", count: countByFlag("e1Ready"), percent: pct(countByFlag("e1Ready")) },
+    { stage: "Executive-reportable zones", count: countByFlag("executiveReportable"), percent: pct(countByFlag("executiveReportable")) },
+  ];
 }
 
-export function getAiActions(role) {
-  return AI_ACTIONS[role] || AI_ACTIONS[ROLES.CEO];
+function aggregateDataQuality(zones) {
+  if (!zones.length) return baseData.dataQuality;
+  if (zones.length === 1) return getZoneProfile(zones[0].id)?.dataQuality || baseData.dataQuality;
+  const areas = baseData.dataQuality.map((item) => item.area);
+  return areas.map((area) => {
+    const rows = zones.map((zone) => getZoneProfile(zone.id)?.dataQuality?.find((item) => item.area === area)).filter(Boolean);
+    const score = rows.length ? Math.round(rows.reduce((sum, row) => sum + row.score, 0) / rows.length) : 0;
+    const weakRows = rows.filter((row) => row.status === "Weak");
+    const usableRows = rows.filter((row) => row.status === "Usable");
+    const status = weakRows.length ? "Weak" : usableRows.length ? "Usable" : "Complete";
+    const gap = weakRows[0]?.gap || usableRows.find((row) => row.gap !== "None")?.gap || "None";
+    return { area, score, status, gap };
+  });
+}
+
+function aggregateLeap(zones) {
+  if (!zones.length) return baseData.leap;
+  if (zones.length === 1) return getZoneProfile(zones[0].id)?.leap || baseData.leap;
+  const stages = ["Locate", "Evaluate", "Assess", "Prepare"];
+  return stages.map((stage) => {
+    const rows = zones.map((zone) => getZoneProfile(zone.id)?.leap?.find((item) => item.stage === stage)).filter(Boolean);
+    const score = rows.length ? Math.round(rows.reduce((sum, row) => sum + row.score, 0) / rows.length) : 0;
+    const output = stage === "Locate"
+      ? "Mapped living-asset coverage across selected scope."
+      : stage === "Evaluate"
+        ? "Nature, water, health, and tenant signals scored for selected scope."
+        : stage === "Assess"
+          ? "Material risks and opportunities isolated for selected scope."
+          : "Internal reporting readiness assessed; upgrade path identified.";
+    return { stage, score, output };
+  });
+}
+
+function filterDataQualityRows(rows, evidenceStatus = "all") {
+  if (evidenceStatus === "all") return rows;
+  return rows.filter((item) => item.status === evidenceStatus);
+}
+
+function filterMissingDataQueue(filters = {}) {
+  const normalized = normalizeFilters(filters);
+  return missingDataQueueAll.filter((item) => {
+    const zoneMatch = normalized.zoneId === "all" || item.zoneId === normalized.zoneId;
+    return zoneMatch;
+  });
 }
 
 export function getSnapshot(periodKey = "30d") {
@@ -734,13 +879,100 @@ export function getSnapshot(periodKey = "30d") {
     periodKey,
     summary: { ...profile.scores },
     trends: profile.trends,
+    scopeLabel: "Asset-wide",
+    activeFilters: DEFAULT_FILTERS,
   };
 }
 
-export function getMetricCards(periodKey = "30d") {
-  const data = getSnapshot(periodKey);
+export function getFilteredSnapshot(periodKey = "30d", filters = {}) {
+  const normalized = normalizeFilters(filters);
+  const raw = getSnapshot(periodKey);
+  let zones = raw.zones.filter((zone) => normalized.zoneId === "all" || zone.id === normalized.zoneId);
+  if (normalized.interventionOnly) zones = zones.filter((zone) => zone.status === "Intervention");
+  const scopeLabel = normalized.zoneId === "all"
+    ? normalized.interventionOnly ? "Intervention zones" : "Asset-wide"
+    : zones[0]?.name || "Selected scope";
+  const dataQualityAll = aggregateDataQuality(zones.length ? zones : raw.zones);
+  const dataQuality = filterDataQualityRows(dataQualityAll, normalized.evidenceStatus);
+  const evidenceFunnel = buildEvidenceFunnelFromZones(zones.length ? zones : raw.zones);
+  const leap = aggregateLeap(zones.length ? zones : raw.zones);
+  const profile = zones.length === 1 ? getZoneProfile(zones[0].id) : null;
+  const visibleZoneIds = new Set(zones.map((zone) => zone.id));
+  const relatedInvestments = raw.investments.filter((item) => {
+    const zoneMatch = normalized.zoneId === "all" || item.zoneId === normalized.zoneId;
+    const interventionMatch = !normalized.interventionOnly || visibleZoneIds.has(item.zoneId);
+    return zoneMatch && interventionMatch;
+  });
+  const ticketZoneMap = {
+    "Podium Lawn": "zone_podium",
+    "Main Arrival Court": "zone_arrival",
+    "Arrival Court": "zone_arrival",
+    "Pedestrian Spine": "zone_spine",
+    "Biodiversity Pocket": "zone_bio",
+  };
+  const tickets = raw.tickets.filter((ticket) => {
+    const ticketZoneId = ticketZoneMap[ticket.zone];
+    const zoneMatch = normalized.zoneId === "all" || ticketZoneId === normalized.zoneId;
+    const interventionMatch = !normalized.interventionOnly || visibleZoneIds.has(ticketZoneId);
+    const statusMatch = normalized.ticketStatus === "all" || ticket.status === normalized.ticketStatus;
+    const slaMatch = normalized.slaStatus === "all" || ticket.sla === normalized.slaStatus;
+    return zoneMatch && interventionMatch && statusMatch && slaMatch;
+  });
+  const water = raw.water.filter((item) => {
+    const zoneMatch = normalized.zoneId === "all" || item.zoneId === normalized.zoneId;
+    const interventionMatch = !normalized.interventionOnly || visibleZoneIds.has(item.zoneId);
+    return zoneMatch && interventionMatch;
+  });
+  const avg = (items, key) => items.length ? Math.round(items.reduce((sum, item) => sum + item[key], 0) / items.length) : 0;
+  const summary = { ...raw.summary };
+  if (zones.length === 1 && profile) {
+    summary.greenInfrastructureValueScore = profile.greenInfrastructureValueScore;
+    summary.natureReadinessScore = profile.natureReadinessScore;
+    summary.tenantGreenEngagementReadiness = profile.tenantGreenEngagementReadiness;
+    summary.dataQualityScore = profile.dataQualityScore;
+    summary.greenAssetMaturityLevel = profile.greenAssetMaturityLevel;
+    summary.highRiskGreenZones = zones[0].status === "Intervention" ? 1 : 0;
+    summary.recommendedInvestmentActions = relatedInvestments.length;
+    summary.openTickets = tickets.filter((ticket) => ticket.status === "Open").length;
+    summary.waterToHealthScore = water[0]?.index ?? raw.summary.waterToHealthScore;
+  } else if (zones.length > 0 && (normalized.interventionOnly || normalized.zoneId !== "all")) {
+    summary.dataQualityScore = Math.round(dataQualityAll.reduce((sum, item) => sum + item.score, 0) / Math.max(1, dataQualityAll.length));
+    summary.highRiskGreenZones = zones.filter((zone) => zone.status === "Intervention").length;
+    summary.recommendedInvestmentActions = relatedInvestments.length;
+    summary.openTickets = tickets.filter((ticket) => ticket.status === "Open").length;
+    summary.waterToHealthScore = avg(water, "index") || raw.summary.waterToHealthScore;
+  }
+  return {
+    ...raw,
+    zones,
+    water,
+    tickets,
+    investments: relatedInvestments,
+    dataQuality,
+    dataQualityAll,
+    evidenceFunnel,
+    leap,
+    summary,
+    scopeLabel,
+    activeFilters: normalized,
+  };
+}
+
+export function getMetricCards(periodKey = "30d", filters = {}) {
+  const normalized = normalizeFilters(filters);
+  const data = getFilteredSnapshot(periodKey, normalized);
   const s = data.summary;
-  const deltas = getMetricDeltaMap(periodKey);
+  const isFiltered = Object.entries(normalized).some(([key, value]) => value !== DEFAULT_FILTERS[key]);
+  const deltas = isFiltered
+    ? {
+        greenInfrastructureValueScore: { label: `${data.scopeLabel} scope`, tone: "slate" },
+        natureReadinessScore: { label: `${data.scopeLabel} scope`, tone: "slate" },
+        waterToHealthScore: { label: `${data.scopeLabel} scope`, tone: "slate" },
+        highRiskGreenZones: { label: `${data.scopeLabel} scope`, tone: "slate" },
+        tenantGreenEngagementReadiness: { label: `${data.scopeLabel} scope`, tone: "slate" },
+        recommendedInvestmentActions: { label: `${data.investments.length} actions in selected scope`, tone: "slate" },
+      }
+    : getMetricDeltaMap(periodKey);
   return [
     { key: "greenInfrastructureValueScore", value: `${s.greenInfrastructureValueScore}/100`, tone: "green" },
     { key: "natureReadinessScore", value: `${s.natureReadinessScore}/100`, tone: "green" },
@@ -751,8 +983,8 @@ export function getMetricCards(periodKey = "30d") {
   ].map((item) => ({ ...metricDefinitions[item.key], ...item, key: item.key, delta: deltas[item.key] }));
 }
 
-export function getCarbonMetrics(periodKey = "30d") {
-  const data = getSnapshot(periodKey);
+export function getCarbonMetrics(periodKey = "30d", filters = {}) {
+  const data = getFilteredSnapshot(periodKey, filters);
   const s = data.summary;
   return [
     { key: "carbonContribution", value: `${s.eligibleInternalContributionTco2e.toFixed(3)} tCO₂e`, tone: "green" },
@@ -762,11 +994,11 @@ export function getCarbonMetrics(periodKey = "30d") {
   ].map((item) => ({ ...metricDefinitions[item.key], ...item, key: item.key }));
 }
 
-export function getRoleMetrics(role, periodKey = "30d") {
-  if (role === ROLES.CEO) return getMetricCards(periodKey);
-  if (role === ROLES.ESG) return getESGReadiness(periodKey).cards;
-  if (role === ROLES.IFM) return getIFMExecutive(periodKey).cards;
-  return getPMExecutive(periodKey).cards;
+export function getRoleMetrics(role, periodKey = "30d", filters = {}) {
+  if (role === ROLES.CEO) return getMetricCards(periodKey, filters);
+  if (role === ROLES.ESG) return getESGReadiness(periodKey, filters).cards;
+  if (role === ROLES.IFM) return getIFMExecutive(periodKey, filters).cards;
+  return getPMExecutive(periodKey, filters).cards;
 }
 
 export function filterZones(data, { zoneId = "all", query = "", interventionOnly = false } = {}) {
@@ -787,19 +1019,21 @@ export function filterInvestments(data, { zoneId = "all", priority = "all" } = {
   });
 }
 
-export function filterTickets(data, { query = "" } = {}) {
+export function filterTickets(data, { query = "", ticketStatus = "all", slaStatus = "all" } = {}) {
   const q = query.trim().toLowerCase();
-  if (!q) return data.tickets;
-  return data.tickets.filter((ticket) =>
-    [ticket.id, ticket.zone, ticket.issue, ticket.owner, ticket.status]
+  return data.tickets.filter((ticket) => {
+    const queryMatch = !q || [ticket.id, ticket.zone, ticket.issue, ticket.owner, ticket.status]
       .join(" ")
       .toLowerCase()
-      .includes(q)
-  );
+      .includes(q);
+    const statusMatch = ticketStatus === "all" || ticket.status === ticketStatus;
+    const slaMatch = slaStatus === "all" || ticket.sla === slaStatus;
+    return queryMatch && statusMatch && slaMatch;
+  });
 }
 
-export function getBoardNarrative(periodKey = "30d") {
-  const data = getSnapshot(periodKey);
+export function getBoardNarrative(periodKey = "30d", filters = {}) {
+  const data = getFilteredSnapshot(periodKey, filters);
   const s = data.summary;
   return [
     `The asset currently sits at Level ${s.greenAssetMaturityLevel}/6: measurable green infrastructure intelligence exists, but external evidence maturity is not yet reached.`,
@@ -809,8 +1043,8 @@ export function getBoardNarrative(periodKey = "30d") {
   ];
 }
 
-export function getBoardDecisionMemo(periodKey = "30d") {
-  const data = getSnapshot(periodKey);
+export function getBoardDecisionMemo(periodKey = "30d", filters = {}) {
+  const data = getFilteredSnapshot(periodKey, filters);
   const s = data.summary;
   return {
     recommendation: "Approve the Focused Resilience Programme as the pilot-to-scale capital pathway.",
@@ -826,14 +1060,151 @@ export function getBoardDecisionMemo(periodKey = "30d") {
   };
 }
 
+export function getESGReadiness(periodKey = "30d", filters = {}) {
+  const data = getFilteredSnapshot(periodKey, filters);
+  const queue = filterMissingDataQueue(filters);
+  const profile = data.zones.length === 1 ? getZoneProfile(data.zones[0].id) : null;
+  const reportability = profile?.reportabilityReadiness ?? 62;
+  const claimRisk = profile?.claimRiskExposure ?? "Moderate";
+  return {
+    cards: [
+      { label: "Reportability Readiness", value: `${reportability}/100`, sub: data.scopeLabel === "Asset-wide" ? "Internal use; external claims restricted" : `${data.scopeLabel} scope`, tone: "blue" },
+      { label: "Evidence Maturity", value: data.evidenceLevel, sub: "Internal model", tone: "amber" },
+      { label: "Data Quality", value: `${data.summary.dataQualityScore}/100`, sub: "Operational completeness", tone: "purple" },
+      { label: "Claim Risk Exposure", value: claimRisk, sub: "Carbon remains high-risk if overclaimed", tone: "amber" },
+      { label: "E1 Upgrade Path", value: `${queue.length} gap${queue.length === 1 ? "" : "s"}`, sub: "Must close before expert review", tone: "green" },
+    ],
+    missingDataQueue: queue,
+    claimUpgradePath: [
+      { topic: "Carbon", current: "Internal estimate", upgrade: "Expert review + documented right-to-report", status: "Blocked for external claim" },
+      { topic: "Nature", current: "Pilot readiness score", upgrade: "Species verification + external review", status: "Internal only" },
+      { topic: "Water", current: "Operational index", upgrade: "Meter-level evidence + baseline sign-off", status: "Conditional" },
+      { topic: "Financial", current: "Estimated leakage", upgrade: "Finance-approved cost model", status: "Conditional" },
+    ],
+  };
+}
+
+export function getDataQualityView(periodKey = "30d", filters = {}) {
+  const data = getFilteredSnapshot(periodKey, filters);
+  const rows = data.dataQualityAll || data.dataQuality;
+  const proofCoverage = Math.round(rows
+    .filter((item) => ["Photo evidence", "Water linkage", "Maintenance history"].includes(item.area))
+    .reduce((sum, item, _, arr) => sum + item.score / arr.length, 0));
+  const strongest = [...rows].sort((a, b) => b.score - a.score)[0];
+  const weakest = [...rows].sort((a, b) => a.score - b.score)[0];
+  const exceptions = rows.filter((item) => item.status !== "Complete");
+  return {
+    cards: [
+      { label: "Data Quality Score", value: `${data.summary.dataQualityScore}/100`, sub: data.scopeLabel, tone: "purple" },
+      { label: "Proof Coverage", value: `${proofCoverage}/100`, sub: "Photo, water, maintenance proof", tone: "blue" },
+      { label: "Strongest Dimension", value: strongest?.area || "—", sub: strongest ? `${strongest.score}/100` : "No data", tone: "green" },
+      { label: "Weakest Dimension", value: weakest?.area || "—", sub: weakest ? `${weakest.score}/100` : "No data", tone: "amber" },
+      { label: "Open Exceptions", value: `${exceptions.length}`, sub: "Rows below complete", tone: "red" },
+    ],
+    rows: data.dataQuality,
+    allRows: rows,
+    exceptions,
+  };
+}
+
+export function getLeapExecutiveView(periodKey = "30d", filters = {}) {
+  const data = getFilteredSnapshot(periodKey, filters);
+  const stageDetails = data.leap.map((item) => {
+    const detailMap = {
+      Locate: {
+        evidence: "Zone map, asset register, irrigation footprint",
+        managementQuestion: "Do we know where every living asset sits?",
+        nextAction: item.score >= 90 ? "Maintain register discipline" : "Close mapping gaps",
+        reportingUse: "System of record",
+      },
+      Evaluate: {
+        evidence: "Species mix, water logs, health scans, tenant visibility",
+        managementQuestion: "What value and ecosystem signals exist?",
+        nextAction: item.score >= 80 ? "Move to opportunity framing" : "Complete nature and water scoring",
+        reportingUse: "Internal baseline",
+      },
+      Assess: {
+        evidence: "Risk map, leakage watch, hotspot analysis",
+        managementQuestion: "Where is risk or upside material?",
+        nextAction: item.score >= 75 ? "Prioritise capital scenarios" : "Resolve material risk gaps",
+        reportingUse: "Decision support",
+      },
+      Prepare: {
+        evidence: "Evidence pack, claim boundary, upgrade path",
+        managementQuestion: "What can be reported responsibly?",
+        nextAction: item.score >= 75 ? "Prepare E1 review" : "Close missing proof before stronger claims",
+        reportingUse: "Claim control",
+      },
+    };
+    return { ...item, ...detailMap[item.stage] };
+  });
+  return {
+    stages: stageDetails,
+    materialSignals: [
+      { title: "Strongest current asset", value: "Located green-asset register", detail: "The system of record is already mature enough to support downstream analysis." },
+      { title: "Primary constraint", value: "Prepare remains weakest", detail: "The limiting factor is not mapping; it is claim-grade evidence continuity." },
+      { title: "Highest-value next move", value: "Close water + photo proof gaps", detail: "This unlocks stronger readiness without overbuilding the model." },
+    ],
+  };
+}
+
+export function getIFMExecutive(periodKey = "30d", filters = {}) {
+  const data = getFilteredSnapshot(periodKey, filters);
+  return {
+    cards: [
+      { label: "SLA Integrity", value: `${data.summary.slaCompliance}%`, sub: "Service commitments met", tone: "green" },
+      { label: "Open Risk Exposure", value: `${data.summary.openTickets}`, sub: "Unresolved work items", tone: "blue" },
+      { label: "Repeat-Issue Burden", value: `${data.summary.repeatIssues}`, sub: "Root-cause repeats", tone: "amber" },
+      { label: "Proof-of-Closure Rate", value: "92%", sub: "Photo-backed closures", tone: "green" },
+      { label: "Client Escalation Watch", value: data.zones.some((zone) => zone.status === "Intervention") ? "1 zone" : "0 zones", sub: "Tenant-visible risk", tone: "amber" },
+      { label: "QBR Readiness", value: "81/100", sub: "Executive pack completeness", tone: "purple" },
+    ],
+    escalationWatch: [
+      { zone: "Podium Lawn", trigger: "Water stress + repeat corrective work", owner: "Irrigation Team", nextAction: "Close zoning correction with proof" },
+      { zone: "Main Arrival Court", trigger: "Heat exposure in tenant-facing zone", owner: "Landscape Ops", nextAction: "Confirm shade-layer proposal" },
+    ].filter((item) => data.scopeLabel === "Asset-wide" || data.zones.some((zone) => zone.name === item.zone || item.zone.includes(zone.name))),
+    qbrTalkingPoints: [
+      "One intervention zone remains; root cause is already isolated.",
+      "SLA is in control, but proof quality varies by vendor.",
+      "Focused resilience actions convert reactive work into preventive value.",
+    ],
+  };
+}
+
+export function getPMExecutive(periodKey = "30d", filters = {}) {
+  const data = getFilteredSnapshot(periodKey, filters);
+  return {
+    cards: [
+      { label: "Today’s Action Queue", value: `${data.summary.openTickets}`, sub: "Open operational tasks", tone: "blue" },
+      { label: "Zones Needing Visit", value: `${Math.min(2, data.zones.length || 0)}`, sub: "Site attention today", tone: "amber" },
+      { label: "Overdue Closures", value: `${data.tickets.filter((item) => item.sla === "Breached").length}`, sub: "Needs follow-up", tone: "red" },
+      { label: "Water Stress Exceptions", value: `${data.water.filter((item) => item.status === "Watch").length}`, sub: "Irrigation watch", tone: "amber" },
+    ],
+    dailyActionQueue: [
+      { zoneId: "zone_podium", priority: "P1", task: "Inspect Podium Lawn dry patch", reason: "Water-stress watch zone", owner: "Supervisor" },
+      { zoneId: "zone_arrival", priority: "P1", task: "Follow up on Arrival Court irrigation leak closure", reason: "SLA breach", owner: "Vendor" },
+      { zoneId: "zone_spine", priority: "P2", task: "Rescan Pedestrian Spine pruning line", reason: "Closure proof pending", owner: "Gardener" },
+    ].filter((item) => data.activeFilters.zoneId === "all" || item.zoneId === data.activeFilters.zoneId),
+    zoneVisitQueue: [
+      { zoneId: "zone_podium", zone: "Podium Lawn", reason: "High-risk + water-stress", lastProof: "2 days ago" },
+      { zoneId: "zone_arrival", zone: "Arrival Court", reason: "Tenant-facing + SLA breach", lastProof: "Pending closure" },
+    ].filter((item) => data.activeFilters.zoneId === "all" || item.zoneId === data.activeFilters.zoneId),
+  };
+}
+
+export function getAiActions(role) {
+  return AI_ACTIONS[role] || AI_ACTIONS[ROLES.CEO];
+}
+
 export function buildAiPayload(role, view, periodKey, filters, task = "") {
-  const data = getSnapshot(periodKey);
+  const data = getFilteredSnapshot(periodKey, filters);
   return {
     role,
     view,
     task,
     period: data.period,
-    filters,
+    scope: data.scopeLabel,
+    filters: data.activeFilters,
     methodVersion: METHOD_VERSION,
     claimStatus: data.claimStatus,
     evidenceLevel: data.evidenceLevel,
@@ -843,11 +1214,13 @@ export function buildAiPayload(role, view, periodKey, filters, task = "") {
     claims: data.claims,
     investments: data.investments,
     tickets: data.tickets,
-    boardMemo: getBoardDecisionMemo(periodKey),
-    esg: getESGReadiness(periodKey),
-    ifm: getIFMExecutive(periodKey),
-    propertyManager: getPMExecutive(periodKey),
+    boardMemo: getBoardDecisionMemo(periodKey, filters),
+    esg: getESGReadiness(periodKey, filters),
+    dataQualityView: getDataQualityView(periodKey, filters),
+    leap: getLeapExecutiveView(periodKey, filters),
+    ifm: getIFMExecutive(periodKey, filters),
+    propertyManager: getPMExecutive(periodKey, filters),
   };
 }
 
-export { metricDefinitions };
+export { metricDefinitions, DEFAULT_FILTERS };
