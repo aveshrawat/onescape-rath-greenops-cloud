@@ -78,6 +78,7 @@ import {
   getFilteredSnapshot,
   getIFMExecutive,
   getInvestmentScenarios,
+  getPortfolioIntelligence,
   getLeapExecutiveView,
   getMetricCards,
   getPMExecutive,
@@ -92,6 +93,7 @@ import { openQbrPack, openVendorPerformanceScorecard, openWeeklyExceptionReport 
 import { openDailyActionSheet, openOpenTicketTracker, openZoneInspectionList } from "./export/dailyActionSheet.js";
 
 const iconByView = {
+  portfolio: Layers,
   value: Gauge,
   risk: MapPin,
   natureWater: Leaf,
@@ -127,6 +129,34 @@ const metricIcons = {
 
 function cx(...items) {
   return items.filter(Boolean).join(" ");
+}
+
+const E1_SUPPORT_LINE = "E1 expert-review pathway initiated through the 30-day pilot engagement.";
+
+const loginRoleCards = [
+  {
+    key: "ceo",
+    title: "Regional CEO / Board",
+    subtitle: dashboardCopy[ROLES.CEO].productName,
+  },
+  {
+    key: "esg",
+    title: "ESG & Sustainability Lead",
+    subtitle: dashboardCopy[ROLES.ESG].productName,
+  },
+  {
+    key: "ops",
+    title: "Property Operations",
+    subtitle: "GreenOps Control Center",
+  },
+];
+
+function EvidencePathwayNote({ compact = false }) {
+  return (
+    <div className={cx("rounded-2xl bg-amber-50 text-amber-900 ring-1 ring-amber-100", compact ? "mt-3 px-3 py-2 text-xs" : "mb-5 px-4 py-3 text-sm")}>
+      {E1_SUPPORT_LINE}
+    </div>
+  );
 }
 
 function formatNumber(value, decimals = 0) {
@@ -303,6 +333,7 @@ function HoverPopover({ anchor, metric }) {
         <p><span className="font-semibold text-slate-950">Source:</span> {metric.source}</p>
         <p><span className="font-semibold text-slate-950">Next action:</span> {metric.action}</p>
       </div>
+      {String(metric.evidence || "").includes("E0") && <EvidencePathwayNote compact />}
     </div>,
     document.body
   );
@@ -351,17 +382,17 @@ function LoginPortal({ onLogin }) {
               A board-grade system for living infrastructure.
             </h1>
             <p className="mt-5 text-base leading-7 text-emerald-50/70">
-              CEO, ESG, IFM, and property teams receive different intelligence from the same governed green-asset layer.
+              Regional CEO, ESG, and property operations teams receive different intelligence from the same governed green-asset layer.
             </p>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              {demoCredentials.map((item) => (
+              {loginRoleCards.map((item) => (
                 <div
-                  key={item.role}
+                  key={item.key}
                   className="rounded-3xl border border-white/10 bg-white/[0.06] p-4 text-left backdrop-blur"
                 >
-                  <p className="text-sm font-semibold">{item.displayName}</p>
-                  <p className="mt-3 text-xs leading-5 text-emerald-50/55">{dashboardCopy[item.role].productName}</p>
+                  <p className="text-sm font-semibold">{item.title}</p>
+                  <p className="mt-3 text-xs leading-5 text-emerald-50/55">{item.subtitle}</p>
                 </div>
               ))}
             </div>
@@ -909,6 +940,101 @@ function ZoneVisitQueue({ periodKey, filters }) {
   );
 }
 
+function PortfolioIntelligenceView() {
+  const portfolio = getPortfolioIntelligence();
+  const rankedAssets = [...portfolio.assets].sort((a, b) => b.greenInfrastructureValue - a.greenInfrastructureValue);
+
+  return (
+    <div>
+      <SectionHeader
+        eyebrow="Portfolio Intelligence"
+        title="Portfolio-level green asset intelligence for capital allocation, not only one-campus reporting."
+        description="RATH scales from one active pilot into a comparable portfolio view: green-infrastructure value, nature-readiness, primary risk, ESG readiness, and recommended capital action by asset."
+        action={<Badge tone="dark">{portfolio.activePilotCount} active pilot</Badge>}
+      />
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Panel className="p-4 sm:p-5">
+          <p className="text-sm font-medium text-slate-500">Portfolio Green Infrastructure Value</p>
+          <p className="mt-2 text-3xl font-semibold text-slate-950">{portfolio.aggregateGreenInfrastructureValue}/100</p>
+          <p className="mt-1 text-sm text-slate-500">Average across ranked assets</p>
+        </Panel>
+        <Panel className="p-4 sm:p-5">
+          <p className="text-sm font-medium text-slate-500">Portfolio Nature-Readiness</p>
+          <p className="mt-2 text-3xl font-semibold text-slate-950">{portfolio.aggregateNatureReadiness}/100</p>
+          <p className="mt-1 text-sm text-slate-500">Internal readiness baseline</p>
+        </Panel>
+        <Panel className="p-4 sm:p-5">
+          <p className="text-sm font-medium text-slate-500">Active Pilot</p>
+          <p className="mt-2 text-3xl font-semibold text-slate-950">Global Technology Park</p>
+          <p className="mt-1 text-sm text-slate-500">Bengaluru</p>
+        </Panel>
+      </div>
+
+      <div className="mt-5 grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
+        <Panel className="overflow-hidden">
+          <div className="border-b border-slate-100 p-4 sm:p-5">
+            <p className="text-base font-semibold text-slate-950">Ranked portfolio table</p>
+            <p className="mt-1 text-sm text-slate-500">Comparable asset intelligence across verified Mapletree names only.</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-[960px] text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-500">
+                  <th className="px-4 py-3">Rank</th>
+                  <th className="px-4 py-3">Asset</th>
+                  <th className="px-4 py-3">GIV</th>
+                  <th className="px-4 py-3">Nature-readiness</th>
+                  <th className="px-4 py-3">Primary risk</th>
+                  <th className="px-4 py-3">ESG readiness</th>
+                  <th className="px-4 py-3">Recommended capital action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rankedAssets.map((asset, index) => (
+                  <tr key={asset.name} className="border-b border-slate-100">
+                    <td className="px-4 py-4 font-semibold text-slate-950">{index + 1}</td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-start gap-2">
+                        <div>
+                          <p className="font-semibold text-slate-950">{asset.name}</p>
+                          {asset.illustrative && <p className="mt-1 text-xs italic text-slate-500">{asset.note}</p>}
+                        </div>
+                        {asset.status === "Active Pilot" && <Badge tone="green">Active Pilot</Badge>}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 font-semibold text-slate-950">{asset.greenInfrastructureValue}/100</td>
+                    <td className="px-4 py-4 text-slate-700">{asset.natureReadiness}/100</td>
+                    <td className="px-4 py-4 text-slate-700">{asset.primaryRisk}</td>
+                    <td className="px-4 py-4"><Badge tone={asset.illustrative ? "slate" : asset.esgReadiness === "Pilot evidence active" ? "green" : "amber"}>{asset.esgReadiness}</Badge></td>
+                    <td className="px-4 py-4 text-slate-700">{asset.recommendedCapitalAction}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+
+        <Panel className="p-4 sm:p-5">
+          <p className="text-base font-semibold text-slate-950">Green Infrastructure Value by asset</p>
+          <p className="mt-1 text-sm text-slate-500">The CEO-level message: one pilot can become a portfolio comparison layer.</p>
+          <div className="mt-4 h-[360px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={rankedAssets} layout="vertical" margin={{ top: 10, right: 10, bottom: 0, left: 18 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis type="number" domain={[0, 100]} tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
+                <YAxis type="category" dataKey="name" width={170} tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#64748b" }} />
+                <Tooltip contentStyle={{ borderRadius: 16, border: "1px solid #e2e8f0" }} />
+                <Bar dataKey="greenInfrastructureValue" name="GIV score" fill="#059669" radius={[0, 8, 8, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
 function ValueOverview({ data, role, periodKey, filters }) {
   const metrics = getMetricCards(periodKey, filters);
 
@@ -966,7 +1092,7 @@ function ValueOverview({ data, role, periodKey, filters }) {
             {[
               ["Water resilience", "Critical", "Weakest nature-readiness component; direct link to capex prioritisation."],
               ["Tenant-facing story", "Watch", "Ready to activate only where evidence quality is sufficient."],
-              ["Evidence maturity", "Watch", "E0 is useful internally; E1 review required before stronger claims."],
+              ["Evidence maturity", "Watch", "E1 expert-review pathway initiated through the 30-day pilot engagement."],
             ].map(([title, status, body]) => (
               <div key={title} className="rounded-2xl bg-slate-50 p-4">
                 <div className="flex items-center justify-between gap-3">
@@ -1342,6 +1468,11 @@ function BoardPackView({ data, periodKey, filters }) {
         action={<Badge tone="amber">Evidence controlled</Badge>}
       />
 
+      <Panel className="mb-5 p-4 sm:p-5">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Portfolio context</p>
+        <p className="mt-2 text-sm leading-6 text-slate-700">{memo.portfolioContext}</p>
+      </Panel>
+
       <div className="grid gap-4 md:grid-cols-4">
         {[
           ["Decision ask", memo.decisionRequired],
@@ -1386,11 +1517,32 @@ function BoardPackView({ data, periodKey, filters }) {
             ))}
           </div>
 
+          <div className="mt-5 rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-100">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Capital scenarios</p>
+            <div className="mt-3 space-y-3">
+              {getInvestmentScenarios(periodKey).map((scenario) => (
+                <div key={scenario.key} className="rounded-2xl bg-white p-3 ring-1 ring-slate-100">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-semibold text-slate-950">{scenario.name}</p>
+                    <Badge tone={scenario.tone}>{scenario.capex}</Badge>
+                  </div>
+                  <p className="mt-2 text-xs leading-5 text-slate-600">{scenario.outcome}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-3xl bg-emerald-50 p-4 ring-1 ring-emerald-100">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-800">Pilot outcome at completion</p>
+            <p className="mt-2 text-sm leading-6 text-emerald-900">{memo.pilotOutcome}</p>
+          </div>
+
           <div className="mt-5 rounded-3xl bg-amber-50 p-4 ring-1 ring-amber-100">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-800">Claim boundary</p>
             <p className="mt-2 text-sm leading-6 text-amber-900">
               RATH does not issue carbon credits. Carbon, nature, and financial outputs remain internal supporting estimates unless upgraded through expert or third-party review.
             </p>
+            <EvidencePathwayNote compact />
           </div>
 
           <Button onClick={() => openBoardPack(periodKey, filters)} className="mt-5 w-full">
@@ -1412,6 +1564,8 @@ function EvidenceOverview({ data, filters }) {
         description={`Senior ESG view for ${data.scopeLabel}: what can be used today, what remains blocked, and what is required next.`}
         action={<Badge tone="purple">{data.summary.dataQualityScore}/100 data quality</Badge>}
       />
+
+      <EvidencePathwayNote />
 
       <ReportabilityReadinessStrip periodKey={data.periodKey} filters={filters} />
 
@@ -1614,6 +1768,7 @@ function ClaimSafety({ data }) {
         description="This is the credibility shield. It protects the client from ESG overclaiming."
         action={<Badge tone="amber">Restricted</Badge>}
       />
+      <EvidencePathwayNote />
       <Panel className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-[760px] text-sm">
@@ -1652,6 +1807,7 @@ function Methodology({ data }) {
         description="This is where ESG and reviewers understand the calculation boundary."
         action={<Badge tone="dark">{METHOD_VERSION}</Badge>}
       />
+      <EvidencePathwayNote />
       <div className="grid gap-4 md:grid-cols-2">
         {data.methodology.map((item) => (
           <Panel key={item.module} className="p-4 sm:p-5">
@@ -1924,6 +2080,8 @@ export default function RathGreenOpsCloud() {
 
   function renderView() {
     switch (activeView) {
+      case "portfolio":
+        return <PortfolioIntelligenceView />;
       case "value":
         return <ValueOverview data={data} role={role} periodKey={periodKey} filters={filters} />;
       case "risk":
@@ -1990,17 +2148,19 @@ export default function RathGreenOpsCloud() {
             </div>
           </div>
 
-          <div className="hidden flex-1 justify-center px-8 lg:flex">
-            <div className="relative w-full max-w-md">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search zones, evidence, tickets..."
-                className="w-full rounded-2xl border border-slate-200 bg-white px-10 py-2.5 text-sm outline-none"
-              />
+          {(role === ROLES.IFM || role === ROLES.PM) && (
+            <div className="hidden flex-1 justify-center px-8 lg:flex">
+              <div className="relative w-full max-w-md">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search zones or tickets..."
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-10 py-2.5 text-sm outline-none"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="hidden items-center gap-2 md:flex">
             <button onClick={() => setAiOpen(true)}><Badge tone="green">AI-powered</Badge></button>
