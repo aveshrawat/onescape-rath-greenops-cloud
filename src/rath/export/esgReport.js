@@ -1,4 +1,4 @@
-import { getDataQualityView, getESGReadiness, getFilteredSnapshot } from "../domain/engine.js";
+import { E1_PATHWAY_TEXT, getDataQualityView, getESGReadiness, getFilteredSnapshot } from "../domain/engine.js";
 
 function esc(value) {
   return String(value ?? "")
@@ -82,7 +82,7 @@ export function openEsgEvidencePack(periodKey = "30d", filters = {}) {
       <h2>Claim upgrade path</h2>
       <table><thead><tr><th>Topic</th><th>Current</th><th>Upgrade requirement</th><th>Status</th></tr></thead><tbody>${claimRows}</tbody></table>
     </div>
-    <div class="note">Internal ESG use only. This pack separates internal estimates from stronger claim-ready evidence.</div>`;
+    <div class="note">Internal ESG use only. This pack separates internal estimates from stronger claim-ready evidence. ${esc(E1_PATHWAY_TEXT)}</div>`;
   openHtml(reportShell({
     title: "RATH ESG Evidence Pack",
     eyebrow: "Internal ESG Use",
